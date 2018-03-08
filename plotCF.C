@@ -202,7 +202,7 @@ TGraphErrors *convertHistoInGev(TH1F *gr) {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", const char *CATSfile = "")
+void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", const char *simfile = "~/Results/LHC17l3b/AnalysisResults.root", const char *CATSfile = "")
 {
   gStyle->SetCanvasPreferGL(1);
   const float right = 0.025;
@@ -262,6 +262,12 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   hist_CF_pp_ApAp_exp[0] = Calculate_CF(histRE_relK_pp,histME_relK_pp,"hist_CF_pp",normleft,normright);
   hist_CF_pp_ApAp_exp[1] = Calculate_CF(histRE_relK_ApAp,histME_relK_ApAp,"hist_CF_ApAp",normleft,normright);
   hist_CF_pp_ApAp_exp[2] = add_CF(hist_CF_pp_ApAp_exp[0],hist_CF_pp_ApAp_exp[1],"hist_CF_pp_ApAp_exp_sum");
+  SetStyleHisto(hist_CF_pp_ApAp_exp[0], 1,1);
+  SetStyleHisto(hist_CF_Lp_ALAp_exp[0], 1,1);
+  SetStyleHisto(hist_CF_LL_ALAL_exp[0], 1,1);
+  SetStyleHisto(hist_CF_pp_ApAp_exp[1], 0,2);
+  SetStyleHisto(hist_CF_Lp_ALAp_exp[1], 0,2);
+  SetStyleHisto(hist_CF_LL_ALAL_exp[1], 0,2);
   SetStyleHisto(hist_CF_pp_ApAp_exp[2], 0,0);
   SetStyleHisto(hist_CF_Lp_ALAp_exp[2], 0,0);
   SetStyleHisto(hist_CF_LL_ALAL_exp[2], 0,0);
@@ -276,6 +282,39 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   TH1F* hist_sys_pp = (TH1F*)file_sys_pp->Get("C2totalsysPP");
   TH1F* hist_sys_pL = (TH1F*)file_sys_pL->Get("C2totalsysPL");
   TH1F* hist_sys_LL = (TH1F*)file_sys_LL->Get("C2totalsysLL");
+
+  // Sim DATA
+  TFile* _file0sim=TFile::Open(simfile);
+  TList *listTPsim=0;
+  _file0sim->GetObject("/PWGCF_PLFemto_0/TP_dir_0",listTPsim);
+  if(!listTPsim) _file0sim->GetObject("/PWGCF_PLFemto_0/TPdir_0",listTPsim);
+  TH1F* histRE_relK_Lpsim = (TH1F*)listTPsim->FindObject("fProtonLambdaRelK");
+  TH1F* histME_relK_Lpsim = (TH1F*)listTPsim->FindObject("fProtonLambdaRelKME");
+  TH1F* histRE_relK_ALApsim = (TH1F*)listTPsim->FindObject("fAntiProtonAntiLambdaRelK");
+  TH1F* histME_relK_ALApsim = (TH1F*)listTPsim->FindObject("fAntiProtonAntiLambdaRelKME");
+  TH1F* histRE_relK_LLsim = (TH1F*)listTPsim->FindObject("fLambdaLambdaRelK");
+  TH1F* histME_relK_LLsim = (TH1F*)listTPsim->FindObject("fLambdaLambdaRelKME");
+  TH1F* histRE_relK_ALALsim = (TH1F*)listTPsim->FindObject("fAntiLambdaAntiLambdaRelK");
+  TH1F* histME_relK_ALALsim  = (TH1F*)listTPsim->FindObject("fAntiLambdaAntiLambdaRelKME");
+  TH1F* histRE_relK_ppsim = (TH1F*)listTPsim->FindObject("fProtonProtonRelK");
+  TH1F* histME_relK_ppsim = (TH1F*)listTPsim->FindObject("fProtonProtonRelKME");
+  TH1F* histRE_relK_ApApsim = (TH1F*)listTPsim->FindObject("fAntiProtonAntiProtonRelK");
+  TH1F* histME_relK_ApApsim = (TH1F*)listTPsim->FindObject("fAntiProtonAntiProtonRelKME");
+  TH1F *hist_CF_Lp_ALAp_sim[3];
+  TH1F *hist_CF_LL_ALAL_sim[3];
+  TH1F *hist_CF_pp_ApAp_sim[3];
+  hist_CF_Lp_ALAp_sim[0] = Calculate_CF(histRE_relK_Lpsim,histME_relK_Lpsim,"hist_CF_Lp_sim",normleft,normright);
+  hist_CF_Lp_ALAp_sim[1] = Calculate_CF(histRE_relK_ALApsim,histME_relK_ALApsim,"hist_CF_ALAp_sim",normleft,normright);
+  hist_CF_Lp_ALAp_sim[2] = add_CF(hist_CF_Lp_ALAp_sim[0],hist_CF_Lp_ALAp_sim[1],"hist_CF_Lp_ALAp_sim_sum");
+  hist_CF_LL_ALAL_sim[0] = Calculate_CF(histRE_relK_LLsim,histME_relK_LLsim,"hist_CF_LL_sim",normleft,normright);
+  hist_CF_LL_ALAL_sim[1] = Calculate_CF(histRE_relK_ALALsim,histME_relK_ALALsim,"hist_CF_LL_sim",normleft,normright);
+  hist_CF_LL_ALAL_sim[2] = add_CF(hist_CF_LL_ALAL_sim[0],hist_CF_LL_ALAL_sim[1],"hist_CF_LL_ALAL_sim_sum");
+  hist_CF_pp_ApAp_sim[0] = Calculate_CF(histRE_relK_ppsim,histME_relK_ppsim,"hist_CF_ppsim",normleft,normright);
+  hist_CF_pp_ApAp_sim[1] = Calculate_CF(histRE_relK_ApApsim,histME_relK_ApApsim,"hist_CF_ApApsim",normleft,normright);
+  hist_CF_pp_ApAp_sim[2] = add_CF(hist_CF_pp_ApAp_sim[0],hist_CF_pp_ApAp_sim[1],"hist_CF_pp_ApAp_sim_sum");
+  SetStyleHisto(hist_CF_pp_ApAp_sim[2], 1,2);
+  SetStyleHisto(hist_CF_Lp_ALAp_sim[2], 1,2);
+  SetStyleHisto(hist_CF_LL_ALAL_sim[2], 1,2);
 
   // UNCERTAINTIES ON THE FIT
   TFile *systFit = TFile::Open(CATSfile);
@@ -350,38 +389,73 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   baselineLL->SetLineColor(fFillColors[6]);
 
   // PLOTTING
-
-//  TCanvas *Can_CF_model = new TCanvas("Can_CF_model","Can_CF_model",0,0,1500,500);
-//  Can_CF_model->Divide(3,1);
-//  Can_CF_model->cd(1);
-//  Can_CF_model->cd(1)->SetRightMargin(right);
-//  Can_CF_model->cd(1)->SetTopMargin(top);
-//  grppDefault->Draw("aL3");
-//  grppLow->Draw("L3same");
-//  grppUp->Draw("L3same");
-//  grFemtopp->Draw("l3 same");
-//  Can_CF_model->cd(2);
-//  Can_CF_model->cd(2)->SetRightMargin(right);
-//  Can_CF_model->cd(2)->SetTopMargin(top);
-//  grpLDefaultNLO->Draw("aL3");
-//  grpLLowNLO->Draw("L3same");
-//  grpLUpNLO->Draw("L3same");
-//  grpLDefaultLO->Draw("L3same");
-//  grpLLowLO->Draw("L3same");
-//  grpLUpLO->Draw("L3same");
-//  grFemtopLNLO->Draw("l3 same");
-//  grFemtopLLO->Draw("l3 same");
-//  Can_CF_model->cd(3);
-//  Can_CF_model->cd(3)->SetRightMargin(right);
-//  Can_CF_model->cd(3)->SetTopMargin(top);
-//  grLLDefault->Draw("AL3");
-//  grLLLow->Draw("L3same");
-//  grLLUp->Draw("L3same");
-//  grLLDefaultStar->Draw("L3same");
-//  grLLLowStar->Draw("L3same");
-//  grLLUpStar->Draw("L3same");
-//  grFemtoLL->Draw("l3 same");
-//  grFemtoLLStar->Draw("l3 same");
+  TCanvas *Can_CF = new TCanvas("Can_CF","Can_CF",0,0,1500,1100);
+  Can_CF->Divide(3,2);
+  Can_CF->cd(1);
+  Can_CF->cd(1)->SetRightMargin(right);
+  Can_CF->cd(1)->SetTopMargin(top);
+  hist_CF_pp_ApAp_exp[0]->Draw("pe");
+  hist_CF_pp_ApAp_exp[1]->Draw("pe same");
+  hist_CF_pp_ApAp_exp[0]->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
+  hist_CF_pp_ApAp_exp[0]->GetXaxis()->SetRangeUser(0, 0.4);
+  hist_CF_pp_ApAp_exp[0]->GetYaxis()->SetRangeUser(0, 4);
+  auto* leg= new TLegend(0.25, 0.7, 0.95, 0.95);
+  leg->AddEntry(hist_CF_pp_ApAp_exp[0], "Particle-particle CF", "pe");
+  leg->AddEntry(hist_CF_pp_ApAp_exp[1], "Antiparticle-antiparticle CF", "pe");
+  leg->Draw("same");
+  Can_CF->cd(2);
+  Can_CF->cd(2)->SetRightMargin(right);
+  Can_CF->cd(2)->SetTopMargin(top);
+  hist_CF_Lp_ALAp_exp[0]->Draw("pe");
+  hist_CF_Lp_ALAp_exp[1]->Draw("pe same");
+  hist_CF_Lp_ALAp_exp[0]->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
+  hist_CF_Lp_ALAp_exp[0]->GetXaxis()->SetRangeUser(0, 0.4);
+  hist_CF_Lp_ALAp_exp[0]->GetXaxis()->SetNdivisions(505);
+  hist_CF_Lp_ALAp_exp[0]->GetYaxis()->SetRangeUser(0.8, 2.5);
+  Can_CF->cd(3);
+  Can_CF->cd(3)->SetRightMargin(right);
+  Can_CF->cd(3)->SetTopMargin(top);
+  hist_CF_LL_ALAL_exp[0]->Draw("pe");
+  hist_CF_LL_ALAL_exp[1]->Draw("pe same");
+  hist_CF_LL_ALAL_exp[0]->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
+  hist_CF_LL_ALAL_exp[0]->GetXaxis()->SetRangeUser(0, 0.4);
+  hist_CF_LL_ALAL_exp[0]->GetXaxis()->SetNdivisions(505);
+  hist_CF_LL_ALAL_exp[0]->GetYaxis()->SetRangeUser(0.25, 3);
+  Can_CF->cd(4);
+  Can_CF->cd(4)->SetRightMargin(right);
+  Can_CF->cd(4)->SetTopMargin(top);
+  TH1F *ppRatio = (TH1F*)hist_CF_pp_ApAp_exp[0]->Clone();
+  auto* line = new TLine(0,1,0.4,1);
+  line->SetLineColor(kGray+3);
+  line->SetLineWidth(2);
+  line->SetLineStyle(2);
+  ppRatio->Divide(hist_CF_pp_ApAp_exp[1]);
+  ppRatio->GetYaxis()->SetRangeUser(0,2);
+  ppRatio->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)_{pp}/#it{C}(k*)_{#bar{pp}}");
+  ppRatio->SetMarkerStyle(fMarkers[2]);
+  ppRatio->Draw("pe");
+  line->Draw("same");
+  Can_CF->cd(5);
+  Can_CF->cd(5)->SetRightMargin(right);
+  Can_CF->cd(5)->SetTopMargin(top);
+  TH1F *pLRatio = (TH1F*)hist_CF_Lp_ALAp_exp[0]->Clone();
+  pLRatio->Divide(hist_CF_Lp_ALAp_exp[1]);
+  pLRatio->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)_{p#Lambda}/#it{C}(k*)_{#bar{p}#bar{#Lambda}}");
+  pLRatio->GetYaxis()->SetRangeUser(0,2);
+  pLRatio->SetMarkerStyle(fMarkers[2]);
+  pLRatio->Draw("pe");
+  line->Draw("same");
+  Can_CF->cd(6);
+  Can_CF->cd(6)->SetRightMargin(right);
+  Can_CF->cd(6)->SetTopMargin(top);
+  TH1F *LLRatio = (TH1F*)hist_CF_LL_ALAL_exp[0]->Clone();
+  LLRatio->Divide(hist_CF_LL_ALAL_exp[1]);
+  LLRatio->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)_{#Lambda#Lambda}/#it{C}(k*)_{#bar{#Lambda}#bar{#Lambda}}");
+  LLRatio->GetYaxis()->SetRangeUser(0,2);
+  LLRatio->SetMarkerStyle(fMarkers[2]);
+  LLRatio->Draw("pe");
+  line->Draw("same");
+  Can_CF->Print("ANplot/CF_pp-apap.pdf");
 
   TCanvas *Can_CF_fitting = new TCanvas("Can_CF_fitting","Can_CF_fitting",0,0,1500,550);
   Can_CF_fitting->Divide(3,1);
@@ -477,5 +551,43 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
 
   BeamText.DrawLatex(0.35, 0.875, Form("ALICE pp #sqrt{#it{s}} = %i TeV", energy));
   text.DrawLatex(0.35, 0.825, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
-  Can_CF_fitting->Print("CF.pdf");
+  Can_CF_fitting->Print("ANplot/CF.pdf");
+
+
+  // Compare to Pythia
+  auto* grDummy = new TH1F("hDummy", "; k* (GeV/#it{c}); #it{C}(k*)", 100, 0,2);
+
+  TCanvas *Can_CF_Pythia= new TCanvas("Can_CF_Pythia","Can_CF_Pythia",0,0,1500,550);
+  Can_CF_Pythia->Divide(3,1);
+  Can_CF_Pythia->cd(1);
+  Can_CF_Pythia->cd(1)->SetRightMargin(right);
+  Can_CF_Pythia->cd(1)->SetTopMargin(top);
+  grDummy->Draw();
+  grDummy->GetYaxis()->SetRangeUser(0, 4);
+  Tgraph_syserror_pp_ApAp->SetFillColorAlpha(kBlack, 0.4);
+  Tgraph_syserror_pp_ApAp->Draw("2 same");
+  hist_CF_pp_ApAp_exp[2]->Draw("pe same");
+  hist_CF_pp_ApAp_sim[2]->Draw("pe same");
+
+  Can_CF_Pythia->cd(2);
+  Can_CF_Pythia->cd(2)->SetRightMargin(right);
+  Can_CF_Pythia->cd(2)->SetTopMargin(top);
+  grDummy->Draw();
+  grDummy->GetYaxis()->SetRangeUser(0.8, 2.1);
+  Tgraph_syserror_pL_ApAL->SetFillColorAlpha(kBlack, 0.4);
+  Tgraph_syserror_pL_ApAL->Draw("2 same");
+  hist_CF_Lp_ALAp_exp[2]->Draw("pe same");
+  hist_CF_Lp_ALAp_sim[2]->Draw("pe same");
+
+  Can_CF_Pythia->cd(3);
+  Can_CF_Pythia->cd(3)->SetRightMargin(right);
+  Can_CF_Pythia->cd(3)->SetTopMargin(top);
+  grDummy->Draw();
+  grDummy->GetYaxis()->SetRangeUser(0.25, 3);
+  Tgraph_syserror_LL_ALAL->SetFillColorAlpha(kBlack, 0.4);
+  Tgraph_syserror_LL_ALAL->Draw("2 same");
+  hist_CF_LL_ALAL_exp[2]->Draw("pe same");
+  hist_CF_LL_ALAL_sim[2]->Draw("pe same");
+
+  Can_CF_Pythia->Print("ANplot/CF_pythia.pdf");
 }
