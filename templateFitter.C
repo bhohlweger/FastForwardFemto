@@ -2225,6 +2225,19 @@ int templateFitter(const char* file, const char* file2) {
       1. - Xim1530_to_Xim - Xin1530_to_Xim - Omegam_to_Xim * OmegamXim_BR,
       Xim1530_to_Xim, Xin1530_to_Xim, Omegam_to_Xim * OmegamXim_BR, 1};
 
+
+  std::cout << "pp purity : " << purity_proton_ptweighted << "\n";
+  for(int i=0; i<NumChannels_p; ++i) {
+    std::cout << "pp fraction " << i << " " << Fraction_p[i] << "\n";
+  }
+
+  std::cout << "pL purity : " << purity_Lambda_ptweighted << "\n";
+  for(int i=0; i<NumChannels_L; ++i) {
+    std::cout << "pL fraction " << i << " " << Fraction_L[i] << "\n";
+  }
+
+  std::cout << "\n\n\n";
+
   printf("Legend:\n");
   printf(" A : primary particle\n");
   printf(" A_B : feed-down from B to A\n");
