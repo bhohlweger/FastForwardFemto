@@ -115,6 +115,7 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   auto* lambdaNegDaughterDCA = (TH1F*)listSP->FindObject("fLambdaDCANegdaughPrimVertex");
   auto* lambdaTransRadius = (TH1F*)listSP->FindObject("fLambdaTransverseRadius");
   auto* lambdaInvMass = (TH1F*)listSP->FindObject("fInvMassLambdawCuts");
+  auto* antilambdaInvMass = (TH1F*)listSP->FindObject("fInvMassAntiLambdawCuts");
   auto* lambdaK0InvMass = (TH1F*)listSP->FindObject("fInvMassMissIDK0s");
   auto* lambdaK0InvMassCut = (TH1F*)listSP->FindObject("fInvMassMissIDK0swCuts");
 
@@ -238,6 +239,7 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
 
   auto* cLambdaMass = new TCanvas();
   SetStyleHisto(lambdaInvMass, 0, 1);
+  SetStyleHisto(antilambdaInvMass, 1, 2);
   lambdaInvMass->SetTitle("; M_{p#pi^{-}} (GeV/#it{c}^{2}}); Entries");
   SetStyleHisto(lambdaK0InvMass, 0, 1);
   lambdaK0InvMass->SetTitle("; M_{#pi^{+}#pi^{-}} (GeV/#it{c}^{2}}); Entries");
@@ -246,6 +248,7 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   cLambdaMass->cd(1);
   lambdaInvMass->Draw("hist");
   lambdaInvMass->GetXaxis()->SetRangeUser(1.1, 1.13);
+  // antilambdaInvMass->Draw("hist same");
   cLambdaMass->cd(2);
   lambdaK0InvMass->Draw("hist");
   lambdaK0InvMass->GetXaxis()->SetRangeUser(0.4, 0.6);
