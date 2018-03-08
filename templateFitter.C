@@ -28,7 +28,7 @@ std::vector<int> markers = {
     kOpenCross,  kFullCross,  kFullDiamond, kFullStar,   kOpenStar};
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void SetStyle(bool graypalette = false, bool title = false) {
+void SetStyle(bool graypalette = false, bool title = true) {
   const int NCont = 255;
   gStyle->Reset("Plain");
   gStyle->SetNumberContours(NCont);
@@ -69,6 +69,25 @@ void SetStyle(bool graypalette = false, bool title = false) {
   gStyle->SetLegendFillColor(kWhite);
   gStyle->SetLegendFont(42);
   gStyle->SetLegendBorderSize(0);
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+void SetStyleHisto(TH1 *histo, int marker, int color)
+{
+  histo->GetXaxis()->SetLabelSize(0.045);
+  histo->GetXaxis()->SetTitleSize(0.05);
+  histo->GetXaxis()->SetLabelOffset(0.01);
+  histo->GetXaxis()->SetTitleOffset(1.2);
+  histo->GetXaxis()->SetLabelFont(42);
+  histo->GetYaxis()->SetLabelSize(0.045);
+  histo->GetYaxis()->SetTitleSize(0.05);
+  histo->GetYaxis()->SetLabelOffset(0.01);
+  histo->GetYaxis()->SetTitleOffset(1.25);
+  histo->SetMarkerStyle(markers[marker]);
+  histo->SetMarkerColor(colors[color]);
+  histo->SetLineColor(colors[color]);
+  histo->SetLineWidth(2);
+  histo->Sumw2();
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -198,7 +217,7 @@ void DrawHist(TH1F* hist1, TH1F* hist2, TH1F* hist3, TH1F* hist4,
               TString HistTitle, TString XTitle, TString YTitle, Int_t option,
               Int_t MarkerColor, Int_t MarkerSize, Int_t MarkerColor2,
               Int_t MarkerSize2, Int_t MarkerColor3, Int_t MarkerSize3,
-              Int_t MarkerColor4, Int_t MarkerSize4, Bool_t showTitle) {
+              Int_t MarkerColor4, Int_t MarkerSize4, Bool_t showTitle, bool singlepanel=false) {
   hist1->SetStats(0);
   if (!showTitle) {
     hist1->SetTitle(0);
@@ -208,6 +227,26 @@ void DrawHist(TH1F* hist1, TH1F* hist2, TH1F* hist3, TH1F* hist4,
   hist1->GetXaxis()->SetTitle(XTitle.Data());
   hist1->GetYaxis()->SetTitle(YTitle.Data());
 
+  if(singlepanel) {
+    hist1->GetXaxis()->SetLabelSize(0.045);
+    hist1->GetXaxis()->SetTitleSize(0.05);
+    hist1->GetXaxis()->SetLabelOffset(0.01);
+    hist1->GetXaxis()->SetTitleOffset(1.2);
+    hist1->GetXaxis()->SetLabelFont(42);
+    hist1->GetYaxis()->SetLabelSize(0.045);
+    hist1->GetYaxis()->SetTitleSize(0.05);
+    hist1->GetYaxis()->SetLabelOffset(0.01);
+    hist1->GetYaxis()->SetTitleOffset(1.25);
+  }
+  else {
+    hist1->GetXaxis()->SetLabelSize(0.065);
+    hist1->GetXaxis()->SetTitleSize(0.075);
+    hist1->GetXaxis()->SetLabelFont(42);
+    hist1->GetYaxis()->SetLabelSize(0.065);
+    hist1->GetYaxis()->SetTitleSize(0.075);
+    hist1->GetYaxis()->SetLabelFont(42);
+    hist1->GetYaxis()->SetTitleOffset(1.25);
+  }
   hist1->SetLineColor(colors[MarkerColor - 1]);
   hist2->SetLineColor(colors[MarkerColor2 - 1]);
   hist3->SetLineColor(colors[MarkerColor3 - 1]);
@@ -242,16 +281,20 @@ void DrawHist(TH1F* hist1, TH1F* hist2, TH1F* hist3, TH1F* hist4,
   } else if (option == 2) {
     hist1->SetMarkerSize(MarkerSize);
     hist1->SetMarkerColor(colors[MarkerColor - 1]);
+    hist1->SetLineColor(colors[MarkerColor - 1]);
     hist1->SetMarkerStyle(markers[0]);
 
     hist2->SetFillStyle(3004);
-    hist2->SetFillColor(fillColors[MarkerColor2 - 1]);
+    hist2->SetFillColor(colors[MarkerColor2 - 1]);
+    hist2->SetLineColor(colors[MarkerColor2 - 1]);
 
     hist3->SetFillStyle(3005);
-    hist3->SetFillColor(fillColors[MarkerColor3 - 1]);
+    hist3->SetFillColor(colors[MarkerColor3 - 1]);
+    hist3->SetLineColor(colors[MarkerColor3 - 1]);
 
     hist4->SetFillStyle(3013);
-    hist4->SetFillColor(fillColors[MarkerColor4 - 1]);
+    hist4->SetFillColor(colors[MarkerColor4 - 1]);
+    hist4->SetLineColor(colors[MarkerColor4 - 1]);
 
     hist1->DrawCopy("PE");
     hist2->DrawCopy("histo same");
@@ -266,7 +309,7 @@ void DrawHist(TH1F* hist1, TH1F* hist2, TH1F* hist3, TH1F* hist4, TH1F* hist5,
               Int_t MarkerColor, Int_t MarkerSize, Int_t MarkerColor2,
               Int_t MarkerSize2, Int_t MarkerColor3, Int_t MarkerSize3,
               Int_t MarkerColor4, Int_t MarkerSize4, Int_t MarkerColor5,
-              Int_t MarkerSize5, Bool_t showTitle) {
+              Int_t MarkerSize5, Bool_t showTitle, bool singlepanel=false) {
   hist1->SetStats(0);
   if (!showTitle) {
     hist1->SetTitle(0);
@@ -281,6 +324,28 @@ void DrawHist(TH1F* hist1, TH1F* hist2, TH1F* hist3, TH1F* hist4, TH1F* hist5,
   hist3->SetLineColor(colors[MarkerColor3 - 1]);
   hist4->SetLineColor(colors[MarkerColor4 - 1]);
   hist5->SetLineColor(colors[MarkerColor5 - 1]);
+
+  if(singlepanel) {
+    hist1->GetXaxis()->SetLabelSize(0.045);
+    hist1->GetXaxis()->SetTitleSize(0.05);
+    hist1->GetXaxis()->SetLabelOffset(0.01);
+    hist1->GetXaxis()->SetTitleOffset(1.2);
+    hist1->GetXaxis()->SetLabelFont(42);
+    hist1->GetYaxis()->SetLabelSize(0.045);
+    hist1->GetYaxis()->SetTitleSize(0.05);
+    hist1->GetYaxis()->SetLabelOffset(0.01);
+    hist1->GetYaxis()->SetTitleOffset(1.25);
+  }
+  else {
+    hist1->GetXaxis()->SetNdivisions(505);
+    hist1->GetXaxis()->SetLabelSize(0.065);
+    hist1->GetXaxis()->SetTitleSize(0.075);
+    hist1->GetXaxis()->SetLabelFont(42);
+    hist1->GetYaxis()->SetLabelSize(0.065);
+    hist1->GetYaxis()->SetTitleSize(0.075);
+    hist1->GetYaxis()->SetLabelFont(42);
+    hist1->GetYaxis()->SetTitleOffset(1.25);
+  }
 
   if (option == 0) {
     hist1->SetMarkerSize(MarkerSize);
@@ -300,7 +365,7 @@ void DrawHist(TH1F* hist1, TH1F* hist2, TH1F* hist3, TH1F* hist4, TH1F* hist5,
     hist4->SetMarkerStyle(markers[3]);
 
     hist5->SetMarkerSize(MarkerSize5);
-    hist5->SetMarkerColor(colors[MarkerColor5 - 1]);
+    hist5->SetMarkerColor(colors[MarkerColor5]);
     hist5->SetMarkerStyle(markers[4]);
 
     hist1->DrawCopy("PE");
@@ -320,16 +385,20 @@ void DrawHist(TH1F* hist1, TH1F* hist2, TH1F* hist3, TH1F* hist4, TH1F* hist5,
     hist1->SetMarkerStyle(markers[0]);
 
     hist2->SetFillStyle(3004);
-    hist2->SetFillColor(fillColors[MarkerColor2 - 1]);
+    hist2->SetFillColor(colors[MarkerColor2 - 1]);
+    hist2->SetLineColor(colors[MarkerColor2 - 1]);
 
     hist3->SetFillStyle(3005);
-    hist3->SetFillColor(fillColors[MarkerColor3 - 1]);
+    hist3->SetFillColor(colors[MarkerColor3 - 1]);
+    hist3->SetLineColor(colors[MarkerColor3 - 1]);
 
     hist4->SetFillStyle(3013);
-    hist4->SetFillColor(fillColors[MarkerColor4 - 1]);
+    hist4->SetFillColor(colors[MarkerColor4 - 1]);
+    hist4->SetLineColor(colors[MarkerColor4 - 1]);
 
     hist5->SetFillStyle(3006);
-    hist5->SetFillColor(fillColors[MarkerColor5 - 1]);
+    hist5->SetFillColor(colors[MarkerColor5]);
+    hist5->SetLineColor(colors[MarkerColor5]);
 
     hist1->DrawCopy("PE");
     hist2->DrawCopy("histo same");
@@ -1139,7 +1208,7 @@ int templateFitter(const char* file, const char* file2) {
            (TH1F*)hist_proton_DCAxy_projection_primary_normalized_ExpEvts[2],
            (TH1F*)hist_proton_DCAxy_projection_secondary_normalized_ExpEvts[2],
            (TH1F*)hist_proton_DCAxy_projection_material_normalized_ExpEvts[2],
-           "", "DCA_{xy} (cm)", "Counts", 1, 1, 1, 4, 1, 2, 1, 3, 1,
+           "", "DCA_{xy} (cm)", "Counts",  2, 1, 1, 2, 1, 3, 1, 4, 1,
            kFALSE);  // The sum of all contributions gives the total
                      // contribution: checked
 
@@ -1227,6 +1296,7 @@ int templateFitter(const char* file, const char* file2) {
   Double_t fraction_proton_material_ptweighted = 0.;
 
   TLegend* leg_DCA = new TLegend(0.1, 0.7, 0.48, 0.9);
+  leg_DCA->SetTextSize(0.055);
 
   for (int ptbin = 0; ptbin < DCA_Ptbins; ptbin++) {
     std::cout << "*******************************" << std::endl;
@@ -1496,8 +1566,8 @@ int templateFitter(const char* file, const char* file2) {
                   [ptbin],
           (TH1F*)hist_proton_DCAxy_projection_material_normalized_ExpEvts_weight
               [ptbin],
-          "", "DCA_{xy} (cm)", "Counts", 2, 1, 1, 4, 1, 2, 1, 3, 1,
-          kFALSE);  // The sum of all contributions gives the total
+          HistTitle, "DCA_{xy} (cm)", "Counts", 2, 1, 1, 2, 1, 3, 1, 4, 1,
+          kTRUE);  // The sum of all contributions gives the total
                     // contribution: checked
       hist_proton_DCAxy_MC_templatesum[ptbin]->SetLineWidth(2);
       hist_proton_DCAxy_MC_templatesum[ptbin]->SetLineColor(1);
@@ -1518,6 +1588,7 @@ int templateFitter(const char* file, const char* file2) {
             "material proton", "f");
       }
       leg_DCA->Draw();
+
 
       Can_proton_DCAxy_templateFit_SecondaryDecomp->cd(ptbin + 1);
       gPad->SetLogy();
@@ -1545,6 +1616,8 @@ int templateFitter(const char* file, const char* file2) {
   }
   // Can_proton_DCAxy_templateFit->Print(Create_path(alinotedir,"MC_template","DCAxy_template",""));
 
+  Can_proton_DCAxy_templateFit->Print("ANplot/protonTemplateFit.pdf");
+
   fraction_proton_primary_ptweighted /=
       ptweight_proton_pt;  // average fraction of primary protons
   fraction_Lambda_feeddown_ptweighted /=
@@ -1559,12 +1632,13 @@ int templateFitter(const char* file, const char* file2) {
 
   const Int_t PIDBinf_for_repo = 1;
 
-  TLegend* leg_proton_summary = new TLegend(0.3, 0.3, 0.78, 0.5);
+  TLegend* leg_proton_summary = new TLegend(0.3, 0.4, 0.78, 0.6);
+  leg_proton_summary->SetTextSize(0.055);
 
   if (doDCAxy_templateFit) {
     TCanvas* Can_proton_DCAxy_representation_fit =
         new TCanvas("Can_proton_DCAxy_representation_fit",
-                    "Can_proton_DCAxy_representation_fit", 0, 0, 1300, 900);
+                    "Can_proton_DCAxy_representation_fit");
     Can_proton_DCAxy_representation_fit->cd();
     gPad->SetLogy();
     DrawHist(
@@ -1575,12 +1649,13 @@ int templateFitter(const char* file, const char* file2) {
             [PIDBinf_for_repo],
         (TH1F*)hist_proton_DCAxy_projection_material_normalized_ExpEvts_weight
             [PIDBinf_for_repo],
-        "", "DCA_{xy} (cm)", "Counts", 2, 1, 1, 4, 1, 2, 1, 3, 1, kFALSE);
+        "", "DCA_{xy} (cm)", "Counts",  2, 1, 1, 2, 1, 3, 1, 4, 1, kFALSE, true);
     hist_proton_DCAxy_MC_templatesum[PIDBinf_for_repo]->SetLineWidth(2);
-    hist_proton_DCAxy_MC_templatesum[PIDBinf_for_repo]->SetLineColor(1);
+    hist_proton_DCAxy_MC_templatesum[PIDBinf_for_repo]->SetLineColor(colors[1]);
     hist_proton_DCAxy_MC_templatesum[PIDBinf_for_repo]->DrawCopy("histo same");
     print_ranges(pt_proton_threshold_low, Delta_pt_proton, PIDBinf_for_repo,
-                 "#it{p}_{T}", "GeV/#it{c}", -2., 90.);
+                 "#it{p}_{T}", "GeV/#it{c}", -2.65, 2E6);
+    Can_proton_DCAxy_representation_fit->Print("ANplot/protonTemplateFit_single.pdf");
 
     TF1* fraction_fit_primary = new TF1("fraction_fit_primary", "[0]", 0.5, 4.);
     fraction_fit_primary->SetParameter(0, 0.92);
@@ -1590,6 +1665,9 @@ int templateFitter(const char* file, const char* file2) {
     Can_proton_fractions->Divide(2, 2);
     Can_proton_fractions->cd(1);
     gPad->SetLogy();
+    SetStyleHisto(hist_proton_pt_spectrum, 0,0);
+    SetStyleHisto(hist_proton_purity, 0,0);
+    hist_proton_purity->SetTitle("; #it{p}_{T} (GeV/#it{c}); Purity");
     hist_proton_pt_spectrum->GetXaxis()->SetRangeUser(0,
                                                       pt_proton_threshold_up);
     DrawHist((TH1F*)hist_proton_pt_spectrum, "", "#it{p}_{T} (GeV/#it{c})",
@@ -1615,7 +1693,7 @@ int templateFitter(const char* file, const char* file2) {
     horline->DrawLine(
         pt_proton_threshold_low, fraction_proton_material_ptweighted,
         pt_proton_threshold_up, fraction_proton_material_ptweighted);
-    horline->SetLineColor(colors[2]);
+    horline->SetLineColor(colors[0]);
 
     leg_proton_summary->AddEntry(hist_proton_fractions_primary_wDCAxyCut,
                                  "primary proton", "p");
@@ -1637,11 +1715,15 @@ int templateFitter(const char* file, const char* file2) {
     //      (GeV/#it{c})","Purity(Proton)",0,1,1, kFALSE);
     horline->DrawLine(pt_proton_switch, purity_proton_ptweighted,
                       pt_proton_threshold_up, purity_proton_ptweighted);
-    horline->SetLineColor(colors[0]);
+    horline->SetLineColor(colors[2]);
     // Can_proton_fractions->Print(Create_path(alinotedir,"MC_template","Proton_summary",""));
     hist_proton_purity->Write();
+    Can_proton_fractions->Print("ANplot/protonFraction.pdf");
 
-    TLegend* SigmaLambdaPercentage = new TLegend(0.2, 0.7, 0.58, 0.9);
+    TLegend* SigmaLambdaPercentage = new TLegend(0.2, 0.6, 0.65, 0.8);
+    SigmaLambdaPercentage->SetTextSize(0.055);
+
+
     SigmaLambdaPercentage->AddEntry(
         hist_proton_fractions_secondaryLambda_wDCAxyCut, "#Lambda percentage",
         "p");
@@ -1650,14 +1732,14 @@ int templateFitter(const char* file, const char* file2) {
         "p");
 
     TCanvas* Can_LambdaSigma_fractions =
-        new TCanvas("Can_LambdaSigma_fractions", "Can_LambdaSigma_fractions", 0,
-                    0, 1300, 900);
+        new TCanvas("Can_LambdaSigma_fractions", "Can_LambdaSigma_fractions");
     Can_LambdaSigma_fractions->cd();
     DrawHist((TH1F*)hist_proton_fractions_secondaryLambda_wDCAxyCut,
              (TH1F*)hist_proton_fractions_secondarySigma_wDCAxyCut, "",
              "#it{p}_{T} (GeV/#it{c})", "Percentage to proton feeddown", 0, 1,
              1, 4, 1, kFALSE);
     SigmaLambdaPercentage->Draw("same");
+    Can_LambdaSigma_fractions->Print("ANplot/SigmaLambdaPercentage.pdf");
   }
 
   //***************************************************************************
@@ -1733,6 +1815,7 @@ int templateFitter(const char* file, const char* file2) {
   Double_t ptweight_Lambda_pt = 0;
 
   TLegend* leg_CPA = new TLegend(0.2, 0.7, 0.58, 0.9);
+  leg_CPA->SetTextSize(0.055);
   // leg->SetHeader("The Legend Title","C"); // option "C" allows to center the
   // header
 
@@ -1811,8 +1894,8 @@ int templateFitter(const char* file, const char* file2) {
             (TH1F*)hist_lambda_CPA_primary_normalized_ExpEvts_weight[ptbin],
             (TH1F*)hist_lambda_CPA_secondary_normalized_ExpEvts_weight[ptbin],
             (TH1F*)hist_lambda_CPA_material_normalized_ExpEvts_weight[ptbin],
-            (TH1F*)hist_lambda_CPA_bkg_normalized_ExpEvts_weight[ptbin], "",
-            "cos(#alpha)", "Counts", 2, 1, 1, 2, 1, 3, 1, 4, 1, 5, 1, kTRUE);
+            (TH1F*)hist_lambda_CPA_bkg_normalized_ExpEvts_weight[ptbin], HistTitle,
+            "cos #alpha", "Counts", 2, 1, 1, 2, 1, 3, 1, 4, 1, 5, 1, kTRUE);
         hist_lambda_CPA_templatesum[ptbin]->SetLineWidth(2);
         hist_lambda_CPA_templatesum[ptbin]->SetLineColor(1);
         hist_lambda_CPA_templatesum[ptbin]->DrawCopy("same");
@@ -1874,6 +1957,7 @@ int templateFitter(const char* file, const char* file2) {
         //*************************************************
       }
     }
+    Can_lambda_CPA_templateFit->Print("ANplot/lambdaTemplateFit.pdf");
 
     // Can_lambda_CPA_templateFit->Print(Create_path(alinotedir,"MC_template","CPA_template",""));
 
@@ -1886,26 +1970,25 @@ int templateFitter(const char* file, const char* file2) {
 
     TCanvas* Can_proton_CPA_representation_fit =
         new TCanvas("Can_proton_CPA_representation_fit",
-                    "Can_proton_CPA_representation_fit", 0, 0, 1300, 900);
-    Can_proton_CPA_representation_fit->Divide(2, 1);
-    Can_proton_CPA_representation_fit->cd(1);
+                    "Can_proton_CPA_representation_fit");
     gPad->SetLogy();
     DrawHist(
-        (TH1F*)hist_lambda_CPA_templatesum[PtbinCPA_repo],
+        (TH1F*)hist_lambda_CPA_exp[PtbinCPA_repo],
         (TH1F*)hist_lambda_CPA_primary_normalized_ExpEvts_weight[PtbinCPA_repo],
         (TH1F*)
             hist_lambda_CPA_secondary_normalized_ExpEvts_weight[PtbinCPA_repo],
         (TH1F*)
             hist_lambda_CPA_material_normalized_ExpEvts_weight[PtbinCPA_repo],
         (TH1F*)hist_lambda_CPA_bkg_normalized_ExpEvts_weight[PtbinCPA_repo], "",
-        "CPA", "Counts", 2, 1, 1, 2, 1, 3, 1, 4, 1, 5, 1, kFALSE);
-    hist_lambda_CPA_exp[PtbinCPA_repo]->DrawCopy("histo same");
-    Can_proton_CPA_representation_fit->cd(2);
-    hist_lambda_fraction_primary->GetYaxis()->SetRangeUser(0., 0.9);
-    DrawHist(hist_lambda_fraction_primary, hist_lambda_fraction_secondary,
-             hist_lambda_fraction_material, hist_lambda_fraction_bkg, "",
-             "#it{p}_{T} (GeV/#it{c})", "fraction", 0, 1, 1, 2, 1, 3, 1, 4, 1,
-             kFALSE);
+        "cos #alpha", "Counts",  2, 1, 1, 2, 1, 3, 1, 4, 1, 5, 1, kFALSE, true);
+    hist_lambda_CPA_templatesum[PtbinCPA_repo]->DrawCopy("histo same");
+    hist_lambda_CPA_templatesum[PtbinCPA_repo]->SetLineWidth(2);
+    hist_lambda_CPA_templatesum[PtbinCPA_repo]->SetLineColor(colors[1]);
+    hist_lambda_CPA_templatesum[PtbinCPA_repo]->DrawCopy("histo same");
+    print_ranges(V0_InvMass_threshold_low, Delta_pt_V0, PtbinCPA_repo,
+                 "#it{p}_{T}", "GeV/#it{c}", 0.992, 5E5);
+    Can_proton_CPA_representation_fit->Print("ANplot/lambdaTemplateFit_single.pdf");
+
   }
 
   //***************************************************************************
@@ -2057,11 +2140,14 @@ int templateFitter(const char* file, const char* file2) {
   // (GeV/#it{c})","S/B",0,1,1);
 
   TLegend* leg_Lambda_summary = new TLegend(0.3, 0.4, 0.78, 0.6);
+  leg_Lambda_summary->SetTextSize(0.055);
 
   TCanvas* Can_lambda_fractions = new TCanvas(
       "Can_lambda_fractions", "Can_lambda_fractions", 0, 0, 1300, 900);
   Can_lambda_fractions->Divide(2, 2);
   Can_lambda_fractions->cd(1);
+  SetStyleHisto(hist_Lambda_pt_spectrum, 1,1);
+  SetStyleHisto(hist_lambda_purity, 1,1);
   gPad->SetLogy();
   DrawHist(hist_Lambda_pt_spectrum, "", "#it{p}_{T} (GeV/#it{c})",
            "dN/d#it{p}_{T} 1/(GeV/#it{c})", 0, 1, 1, kFALSE);
@@ -2074,10 +2160,11 @@ int templateFitter(const char* file, const char* file2) {
                     V0_InvMass_threshold_up, purity_Lambda_ptweighted);
   horline->SetLineColor(colors[0]);
   Can_lambda_fractions->cd(2);
+  hist_lambda_fraction_primary->GetYaxis()->SetRangeUser(0,1);
   DrawHist(hist_lambda_fraction_primary, hist_lambda_fraction_secondary,
            hist_lambda_fraction_material, hist_lambda_fraction_bkg, "",
-           "#it{p}_{T} (GeV/#it{c})", "fraction", 0, 1, 1, 2, 1, 3, 1, 4, 1,
-           kFALSE);
+           "#it{p}_{T} (GeV/#it{c})", "Fraction", 0, 1, 1, 2, 1, 3, 1, 4, 1,
+           kFALSE, true);
   horline->DrawLine(V0_InvMass_threshold_low,
                     fraction_Lambda_primary_ptweighted, V0_InvMass_threshold_up,
                     fraction_Lambda_primary_ptweighted);
@@ -2089,7 +2176,7 @@ int templateFitter(const char* file, const char* file2) {
   horline->DrawLine(
       V0_InvMass_threshold_low, fraction_Lambda_background_ptweighted,
       V0_InvMass_threshold_up, fraction_Lambda_background_ptweighted);
-  horline->SetLineColor(colors[2]);
+  horline->SetLineColor(colors[0]);
 
   leg_Lambda_summary->AddEntry(hist_lambda_fraction_primary, "primary #Lambda",
                                "p");
@@ -2099,6 +2186,7 @@ int templateFitter(const char* file, const char* file2) {
                                "material #Lambda", "p");
   leg_Lambda_summary->AddEntry(hist_lambda_fraction_bkg, "fake #Lambda", "p");
   leg_Lambda_summary->Draw();
+  Can_lambda_fractions->Print("ANplot/lambdaFraction.pdf");
 
   hist_lambda_fraction_primary->Write();
   hist_lambda_fraction_secondary->Write();
@@ -2106,10 +2194,10 @@ int templateFitter(const char* file, const char* file2) {
   hist_lambda_fraction_bkg->Write();
 
   TCanvas* Can_lambda_signal =
-      new TCanvas("Can_lambda_signal", "Can_lambda_signal", 0, 0, 1300, 900);
+      new TCanvas("Can_lambda_signal", "Can_lambda_signal");
   Can_lambda_signal->cd();
   hist_lambda_signal->Draw();
-  hist_lambda_signal->SetTitle("; #it{p}_{T} (GeV/#it{c}; Counts");
+  hist_lambda_signal->SetTitle("; #it{p}_{T} (GeV/#it{c}); Counts");
 
   std::cout << "Parameters" << std::endl;
   std::cout << "---------- For proton-proton CF ----------" << std::endl;
