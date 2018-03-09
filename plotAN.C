@@ -359,11 +359,11 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
 
   auto* cLambdaMass = new TCanvas();
   SetStyleHisto(lambdaInvMass, 0, 1);
-  SetStyleHisto(antilambdaInvMass, 1, 2);
-  lambdaInvMass->SetTitle("; M_{p#pi^{-}} (GeV/#it{c}^{2}}); Entries");
-  antilambdaInvMass->SetTitle("; M_{p#pi^{-}} (GeV/#it{c}^{2}}); Entries");
+  SetStyleHisto(antilambdaInvMass, 0, 1);
+  lambdaInvMass->SetTitle("; M_{p#pi^{-}} (GeV/#it{c}^{2}); Entries");
+  antilambdaInvMass->SetTitle("; M_{#bar{p}#pi^{+}} (GeV/#it{c}^{2}); Entries");
   SetStyleHisto(lambdaK0InvMass, 0, 1);
-  lambdaK0InvMass->SetTitle("; M_{#pi^{+}#pi^{-}} (GeV/#it{c}^{2}}); Entries");
+  lambdaK0InvMass->SetTitle("; M_{#pi^{+}#pi^{-}} (GeV/#it{c}^{2}); Entries");
   SetStyleHisto(lambdaK0InvMassCut, 0, 2);
   cLambdaMass->Divide(2,1);
   cLambdaMass->cd(1);
@@ -409,7 +409,7 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   LambdaLabel.SetNDC(kTRUE);
   LambdaLabel.SetTextSize(gStyle->GetTextSize()*0.8);
   LambdaLabel.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.39,
-                        Form("#splitline{#splitline{#splitline{#Lambda^{0}: %.0f}{m_{#Lambda} = %.1f (MeV/#it{c}^{2})}}{#sigma_{#Lambda} = %.1f (MeV/#it{c}^{2})}}{Purity = %.1f %%}", lambdaSignalAll, meanMass*1000.f, meanWidth*1000.f, lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f));
+                        Form("#splitline{#splitline{#splitline{#Lambda: %.0f}{m_{#Lambda} = %.1f (MeV/#it{c}^{2})}}{#sigma_{#Lambda} = %.1f (MeV/#it{c}^{2})}}{Purity = %.1f %%}", lambdaSignalAll, meanMass*1000.f, meanWidth*1000.f, lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f));
   TLatex BeamTextLambda;
   BeamTextLambda.SetNDC(kTRUE);
   BeamTextLambda.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.2, "pp #sqrt{#it{s}} = 13 TeV");
@@ -436,7 +436,7 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   meanMass = weightedMean(amp1, mean1, amp2, mean2);
   meanWidth = weightedMean(amp1, width1, amp2, width2);
   LambdaLabel.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.39,
-                        Form("#splitline{#splitline{#splitline{#Lambda^{0}: %.0f}{m_{#Lambda} = %.1f (MeV/#it{c}^{2})}}{#sigma_{#Lambda} = %.1f (MeV/#it{c}^{2})}}{Purity = %.1f %%}", lambdaSignalAll, meanMass*1000.f, meanWidth*1000.f, lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f));
+                        Form("#splitline{#splitline{#splitline{#bar{#Lambda}: %.0f}{m_{#bar{#Lambda}} = %.1f (MeV/#it{c}^{2})}}{#sigma_{#bar{#Lambda}} = %.1f (MeV/#it{c}^{2})}}{Purity = %.1f %%}", lambdaSignalAll, meanMass*1000.f, meanWidth*1000.f, lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f));
   BeamTextLambda.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.2, "pp #sqrt{#it{s}} = 13 TeV");
   cAntiLambda->Print("ANplot/InvMassAntiLambda.pdf");
 
@@ -459,7 +459,7 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   for(int i=0; i<nPtBinsLambda-1; ++i) {
     cLambdaPt->cd(i+1);
     hRecoLambdaPt[i] = (TH1F*)listSP->FindObject(Form("fInvMassLambdawCutsPtBin%i", i));
-    hRecoLambdaPt[i]->SetTitle(Form("%.2f < #it{p}_{T} < %.2f GeV/#it{c}; M_{p#pi} (GeV/#it{c}^{2}); Entries", ptBinLambdaRange[i], ptBinLambdaRange[i+1]));
+    hRecoLambdaPt[i]->SetTitle(Form("%.2f < #it{p}_{T} < %.2f GeV/#it{c}; M_{p#pi^{-}} (GeV/#it{c}^{2}); Entries", ptBinLambdaRange[i], ptBinLambdaRange[i+1]));
     SetStyleHistoMany(hRecoLambdaPt[i], 0, 0);
     hRecoLambdaPt[i]->Draw();
     FitLambda(hRecoLambdaPt[i], lambdaSignal[i], lambdaSignalErr[i], lambdaBackground[i], lambdaBackgroundErr[i], massLambda-marginLambda, massLambda+marginLambda);
