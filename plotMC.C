@@ -52,6 +52,22 @@ void SetStyleHistoMany(TH2 *histo)
   histo->GetYaxis()->SetTitleOffset(1.25);
 }
 
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+void SetStyleHisto(TH2 *histo)
+{
+histo->GetXaxis()->SetLabelSize(0.045);
+histo->GetXaxis()->SetTitleSize(0.05);
+histo->GetXaxis()->SetLabelOffset(0.01);
+histo->GetXaxis()->SetTitleOffset(1.2);
+histo->GetXaxis()->SetLabelFont(42);
+histo->GetYaxis()->SetLabelSize(0.045);
+histo->GetYaxis()->SetTitleSize(0.05);
+histo->GetYaxis()->SetLabelOffset(0.01);
+histo->GetYaxis()->SetTitleOffset(1.25);
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void plotMC(const char *simfile = "~/Results/LHC17l3b/AnalysisResults.root")
 {
   SetStyle();
@@ -82,6 +98,7 @@ void plotMC(const char *simfile = "~/Results/LHC17l3b/AnalysisResults.root")
     fDeltaEtaDeltaPhiProton[i]->GetXaxis()->SetRangeUser(0, 0.5);
     fDeltaEtaDeltaPhiProton[i]->GetYaxis()->SetRangeUser(0, 0.5);
   }
+  c->Print("ANplot/trackSplitting_pp.pdf");
 
   auto* d = new TCanvas("pp(L)", "pp(L)", 1500, 1000);
   d->Divide(3,3);
@@ -97,6 +114,7 @@ void plotMC(const char *simfile = "~/Results/LHC17l3b/AnalysisResults.root")
     fDeltaEtaDeltaPhiProtonV0proton[i]->GetXaxis()->SetRangeUser(0, 0.5);
     fDeltaEtaDeltaPhiProtonV0proton[i]->GetYaxis()->SetRangeUser(0, 0.5);
   }
+  d->Print("ANplot/trackSplitting_pLambdap.pdf");
 
   auto* e = new TCanvas("ppi(L)", "ppi(L)", 1500, 1000);
   e->Divide(3,3);
@@ -112,4 +130,37 @@ void plotMC(const char *simfile = "~/Results/LHC17l3b/AnalysisResults.root")
     fDeltaEtaDeltaPhiProtonV0pion[i]->GetXaxis()->SetRangeUser(0, 0.5);
     fDeltaEtaDeltaPhiProtonV0pion[i]->GetYaxis()->SetRangeUser(0, 0.5);
   }
+  e->Print("ANplot/trackSplitting_pLambdapi.pdf");
+
+  auto *f = new TCanvas("res", "res", 1500,550);
+  f->Divide(3,1);
+  f->cd(1);
+  f->cd(1)->SetLogz();
+  f->cd(1)->SetRightMargin(0.16);
+  auto *fppMomCorr = (TH2F*)listTPsim->FindObject("fPpRelKTrueReco");
+  fppMomCorr->SetTitle(";k*_{gen}(pp); k*_{rec}(pp)");
+  fppMomCorr->GetXaxis()->SetRangeUser(0, 0.3);
+  fppMomCorr->GetYaxis()->SetRangeUser(0, 0.3);
+  SetStyleHistoMany(fppMomCorr);
+  fppMomCorr->Draw("colz");
+  f->cd(2);
+  f->cd(2)->SetLogz();
+  f->cd(2)->SetRightMargin(0.16);
+  auto *fV0pMomCorr = (TH2F*)listTPsim->FindObject("fV0pRelKTrueReco");
+  fV0pMomCorr->SetTitle(";k*_{gen}(p#Lambda); k*_{rec}(p#Lambda)");
+  fV0pMomCorr->GetXaxis()->SetRangeUser(0, 0.3);
+  fV0pMomCorr->GetYaxis()->SetRangeUser(0, 0.3);
+  SetStyleHistoMany(fV0pMomCorr);
+  fV0pMomCorr->Draw("colz");
+  f->cd(3);
+  f->cd(3)->SetLogz();
+  f->cd(3)->SetRightMargin(0.16);
+  auto *fV0V0MomCorr = (TH2F*)listTPsim->FindObject("fV0V0RelKTrueReco");
+  fV0V0MomCorr->SetTitle(";k*_{gen}(#Lambda#Lambda); k*_{rec}(#Lambda#Lambda)");
+  fV0V0MomCorr->GetXaxis()->SetRangeUser(0, 0.3);
+  fV0V0MomCorr->GetYaxis()->SetRangeUser(0, 0.3);
+  SetStyleHistoMany(fV0V0MomCorr);
+  fV0V0MomCorr->Draw("colz");
+  f->Print("ANplot/MomCorrMatrix.pdf");
+
 }
