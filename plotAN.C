@@ -3,7 +3,7 @@ std::vector<int> fColors     = {kBlack, kRed+1 , kBlue+2, kGreen+3, kMagenta+1, 
 std::vector<int> fMarkers    = {kFullCircle, kFullSquare, kOpenCircle, kOpenSquare, kOpenDiamond, kOpenCross, kFullCross, kFullDiamond, kFullStar, kOpenStar};
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void SetStyle(bool graypalette=false, bool title=false)
+void SetStyle(bool graypalette=false, bool title=true)
 {
   const int NCont = 255;
   gStyle->Reset("Plain");
@@ -64,6 +64,21 @@ void SetStyleHisto(TH1 *histo, int marker, int color)
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+void SetStyleHistoMany(TH1 *histo, int marker, int color)
+{
+  histo->GetXaxis()->SetLabelSize(0.05);
+  histo->GetXaxis()->SetTitleSize(0.055);
+  histo->GetXaxis()->SetLabelFont(42);
+  histo->GetYaxis()->SetLabelSize(0.05);
+  histo->GetYaxis()->SetTitleSize(0.055);
+  histo->GetYaxis()->SetLabelFont(42);
+  histo->GetYaxis()->SetTitleOffset(1.25);
+  histo->SetMarkerStyle(fMarkers[marker]);
+  histo->SetMarkerColor(fColors[color]);
+  histo->SetLineColor(fColors[color]);
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void SetStyleHisto(TH2 *histo)
 {
   histo->GetXaxis()->SetLabelSize(0.045);
@@ -75,6 +90,110 @@ void SetStyleHisto(TH2 *histo)
   histo->GetYaxis()->SetTitleSize(0.05);
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.25);
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+void SetStyleGraph(TGraph *graph, int marker, int color)
+{
+  graph->SetMarkerStyle(fMarkers[marker]);
+  graph->SetMarkerColor(fColors[color]);
+  graph->SetLineColor(fColors[color]);
+  graph->GetYaxis()->SetTitleOffset(1.25);
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+TH1F *getSignalHisto(TF1 *function, TH1F *histo, float rangeLow, float rangeHigh, const char *name)
+{
+  const int firstBin = histo->FindBin(rangeLow);
+  const int lastBin  = histo->FindBin(rangeHigh);
+  TH1F *result = new TH1F(Form("result_%f_%f_%s", rangeLow, rangeHigh, name), "", histo->GetNbinsX(), histo->GetXaxis()->GetXmin(), histo->GetXaxis()->GetXmax());
+  for(int i = firstBin; i<lastBin; ++i) {
+    float weight = histo->GetBinContent(i) - function->Eval(histo->GetBinCenter(i));
+    result->Fill(histo->GetBinCenter(i), weight);
+    result->SetBinError(i, histo->GetBinError(i));
+  }
+  result->SetFillColor(fFillColors[0]);
+  result->SetLineColor(fFillColors[0]);
+  result->Sumw2();
+  return result;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+void FitLambda(TH1F* histo, float &signal, float &signalErr, float &background, float &backgroundErr, float lowerBound, float upperBound)
+{
+  histo->Sumw2();
+  // Fit Background with second order polynomial, excluding Mlambda +/- 10 MeV
+  TF1 *fBackground = new TF1("fBackground", [&](double *x, double *p) { if (x[0] > 1.1075 && x[0] < 1.1235) {TF1::RejectPoint(); return (double)0; } return p[0] + p[1]*x[0] + p[2]*x[0]*x[0]; }, 1.095, 1.15, 3);
+  TFitResultPtr backgroundR = histo->Fit("fBackground", "SRQ0", "", 1.095, 1.15);
+
+  // parse then to proper TF1
+  TF1 *fBackground2 = new TF1("fBackground2","pol2", 0, 1.5);
+  fBackground2->SetParameter(0, fBackground->GetParameter(0));
+  fBackground2->SetParameter(1, fBackground->GetParameter(1));
+  fBackground2->SetParameter(2, fBackground->GetParameter(2));
+
+  // remove background from signal
+  TH1F *signalOnly = getSignalHisto(fBackground2, histo, 1.0, 1.3, Form("%s_signal_only", histo->GetName()));
+  signalOnly->Sumw2();
+  signalOnly->Draw("same");
+
+  // fit signal only
+  TF1 *fSignalSingleGauss = new TF1("fSignalSingleGauss", "gaus", 1.095, 1.15);
+  signalOnly->Fit("fSignalSingleGauss", "SRQ0", "", 1.1075, 1.1235);
+
+  TF1 *fSignalGauss = new TF1("fSignalGauss", "gaus(0) + gaus(3)", 1.1, 1.3);
+  fSignalGauss->SetParameter(0, 0.05 * histo->GetMaximum());
+  fSignalGauss->SetParameter(1, fSignalSingleGauss->GetParameter(1));
+  fSignalGauss->SetParameter(2, 5.f*fSignalSingleGauss->GetParameter(2));
+  fSignalGauss->SetParameter(3, 0.95 * histo->GetMaximum());
+  fSignalGauss->SetParameter(4, fSignalSingleGauss->GetParameter(1));
+  fSignalGauss->SetParameter(5, fSignalSingleGauss->GetParameter(2));
+  TFitResultPtr r = signalOnly->Fit("fSignalGauss", "SRQ0", "", 1.1075, 1.1235);
+
+  // Extract signal as integral
+  signal = fSignalGauss->Integral(lowerBound, upperBound) /double(histo->GetBinWidth(1));
+  signalErr = fSignalGauss->IntegralError(lowerBound, upperBound, r->GetParams(), r->GetCovarianceMatrix().GetMatrixArray()) /double(histo->GetBinWidth(1));
+
+  TF1 *fLambda = new TF1("fLambda", "fBackground2 + fSignalGauss", 1.1, 1.13);
+  fLambda->SetNpx(1000);
+  fLambda->SetParameter(3, 0.75 * histo->GetMaximum());
+  fLambda->SetParameter(4, fSignalGauss->GetParameter((1)));
+  fLambda->SetParameter(5, fSignalGauss->GetParameter((2)));
+  fLambda->SetParameter(6, 0.2 * histo->GetMaximum());
+  fLambda->SetParameter(7, fSignalGauss->GetParameter((4)));
+  fLambda->SetParameter(8, fSignalGauss->GetParameter((5)));
+  fLambda->SetLineColor(fColors[1]);
+  histo->Fit("fLambda", "SRQ", "", 1.095, 1.15);
+
+  TF1 *fLambda_background = new TF1("fLambda_background", "pol2(0)", 1.05, 1.25);
+  fLambda_background->SetParameter(0, fLambda->GetParameter(0));
+  fLambda_background->SetParameter(1, fLambda->GetParameter(1));
+  fLambda_background->SetParameter(2, fLambda->GetParameter(2));
+  fLambda_background->SetLineStyle(3);
+  fLambda_background->SetLineColor(fColors[1]);
+
+  background = fLambda_background->Integral(lowerBound, upperBound) /double(histo->GetBinWidth(1));
+  backgroundErr = fLambda_background->IntegralError(lowerBound, upperBound, backgroundR->GetParams(), backgroundR->GetCovarianceMatrix().GetMatrixArray()) /double(histo->GetBinWidth(1));
+
+  histo->GetListOfFunctions()->Add(fLambda_background);
+
+  delete signalOnly;
+  delete fSignalGauss;
+  delete fSignalSingleGauss;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// a and c are the weighting entities, i.e. wMean = (weightA*A + weightB*d) / (a+weightB)
+float weightedMean(float weightA, float A, float weightB, float B)
+{
+  return (weightA*A + weightB*B)/(weightA+weightB);
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// a and weightB are the weighting entities, i.e. wMean = (weightA*A + weightB*B) / (a+weightB)
+float weightedMeanError(float weightA, float A, float weightB, float B, float weightAErr, float AErr, float weightBErr, float BErr)
+{
+  return std::sqrt(weightAErr*weightAErr*std::pow(((weightB*(A - B))/((weightA + weightB)*(weightA + weightB))), 2) + AErr*AErr* std::pow(weightA/(weightA + weightB), 2)  + weightBErr*weightBErr*std::pow((weightA* (-A + B))/((weightA + weightB)*(weightA + weightB)) , 2) + BErr*BErr* std::pow(weightB/(weightA + weightB), 2));
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -135,6 +254,7 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   cEventProps->cd(1);
   cEventProps->cd(1)->SetLogy();
   SetStyleHisto(histNtracklets, 0, 1);
+  histNtracklets->SetTitle("; Number of SPD tracklets in |#eta|<0.8; Entries");
   histNtracklets->Draw("hist");
   cEventProps->cd(2);
   SetStyleHisto(histZvertex, 0, 1);
@@ -241,6 +361,7 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   SetStyleHisto(lambdaInvMass, 0, 1);
   SetStyleHisto(antilambdaInvMass, 1, 2);
   lambdaInvMass->SetTitle("; M_{p#pi^{-}} (GeV/#it{c}^{2}}); Entries");
+  antilambdaInvMass->SetTitle("; M_{p#pi^{-}} (GeV/#it{c}^{2}}); Entries");
   SetStyleHisto(lambdaK0InvMass, 0, 1);
   lambdaK0InvMass->SetTitle("; M_{#pi^{+}#pi^{-}} (GeV/#it{c}^{2}}); Entries");
   SetStyleHisto(lambdaK0InvMassCut, 0, 2);
@@ -254,6 +375,159 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   lambdaK0InvMass->GetXaxis()->SetRangeUser(0.4, 0.6);
   lambdaK0InvMassCut->Draw("hist same");
   cLambdaMass->Print("ANplot/LambdaInvMass.pdf");
+
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // LAMBDA
+
+  std::vector<float> ptBinLambdaRange = {0.3, 0.8, 1.3, 1.8, 2.3, 2.8, 3.3, 3.8, 4.3};
+  const int nPtBinsLambda = ptBinLambdaRange.size();
+  const float marginLambda = 0.004;
+  const float massLambda = 1.115;
+
+  auto* cLambda = new TCanvas();
+  auto* hRecoLambdaM = (TH1F*)lambdaInvMass->Clone();
+  hRecoLambdaM->Draw("PE");
+  float lambdaSignalAll, lambdaSignalAllErr, lambdaBackgroundAll, lambdaBackgroundAllErr;
+  TList *funListLambda;
+  FitLambda(hRecoLambdaM, lambdaSignalAll, lambdaSignalAllErr, lambdaBackgroundAll, lambdaBackgroundAllErr, massLambda-marginLambda, massLambda+marginLambda);
+  std::cout << "Lambda \n";
+  std::cout << "Signal " << lambdaSignalAll << " Background " << lambdaBackgroundAll << " S/B " << lambdaSignalAll/lambdaBackgroundAll << "\n";
+  hRecoLambdaM->GetXaxis()->SetRangeUser(1.1, 1.13);
+  funListLambda = hRecoLambdaM->GetListOfFunctions();
+  TF1 *fLambdaTotal = (TF1*)funListLambda->FindObject("fLambda");
+
+  float amp1 = fLambdaTotal->GetParameter(3);
+  float amp2 = fLambdaTotal->GetParameter(6);
+  float mean1 = fLambdaTotal->GetParameter(4);
+  float mean2 = fLambdaTotal->GetParameter(7);
+  float width1 = fLambdaTotal->GetParameter(5);
+  float width2 = fLambdaTotal->GetParameter(8);
+
+  float meanMass = weightedMean(amp1, mean1, amp2, mean2);
+  float meanWidth = weightedMean(amp1, width1, amp2, width2);
+  TLatex LambdaLabel;
+  LambdaLabel.SetNDC(kTRUE);
+  LambdaLabel.SetTextSize(gStyle->GetTextSize()*0.8);
+  LambdaLabel.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.39,
+                        Form("#splitline{#splitline{#splitline{#Lambda^{0}: %.0f}{m_{#Lambda} = %.1f (MeV/#it{c}^{2})}}{#sigma_{#Lambda} = %.1f (MeV/#it{c}^{2})}}{Purity = %.1f %%}", lambdaSignalAll, meanMass*1000.f, meanWidth*1000.f, lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f));
+  TLatex BeamTextLambda;
+  BeamTextLambda.SetNDC(kTRUE);
+  BeamTextLambda.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.2, "pp #sqrt{#it{s}} = 13 TeV");
+  cLambda->Print("ANplot/InvMassLambda.pdf");
+
+
+  auto* cAntiLambda = new TCanvas();
+  auto* hRecoAntiLambdaM = (TH1F*)antilambdaInvMass->Clone();
+  hRecoAntiLambdaM->Draw("PE");
+  FitLambda(hRecoAntiLambdaM, lambdaSignalAll, lambdaSignalAllErr, lambdaBackgroundAll, lambdaBackgroundAllErr, massLambda-marginLambda, massLambda+marginLambda);
+  std::cout << "Lambda \n";
+  std::cout << "Signal " << lambdaSignalAll << " Background " << lambdaBackgroundAll << " S/B " << lambdaSignalAll/lambdaBackgroundAll << "\n";
+  hRecoAntiLambdaM->GetXaxis()->SetRangeUser(1.1, 1.13);
+  funListLambda = hRecoAntiLambdaM->GetListOfFunctions();
+  fLambdaTotal = (TF1*)funListLambda->FindObject("fLambda");
+
+  amp1 = fLambdaTotal->GetParameter(3);
+  amp2 = fLambdaTotal->GetParameter(6);
+  mean1 = fLambdaTotal->GetParameter(4);
+  mean2 = fLambdaTotal->GetParameter(7);
+  width1 = fLambdaTotal->GetParameter(5);
+  width2 = fLambdaTotal->GetParameter(8);
+
+  meanMass = weightedMean(amp1, mean1, amp2, mean2);
+  meanWidth = weightedMean(amp1, width1, amp2, width2);
+  LambdaLabel.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.39,
+                        Form("#splitline{#splitline{#splitline{#Lambda^{0}: %.0f}{m_{#Lambda} = %.1f (MeV/#it{c}^{2})}}{#sigma_{#Lambda} = %.1f (MeV/#it{c}^{2})}}{Purity = %.1f %%}", lambdaSignalAll, meanMass*1000.f, meanWidth*1000.f, lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f));
+  BeamTextLambda.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.2, "pp #sqrt{#it{s}} = 13 TeV");
+  cAntiLambda->Print("ANplot/InvMassAntiLambda.pdf");
+
+  TH1F *hRecoLambdaPt[nPtBinsLambda-1];
+  TGraphErrors *grLambdaMass = new TGraphErrors();
+  TGraphErrors *grLambdaWidth = new TGraphErrors();
+  TGraphErrors *grLambdaPurity = new TGraphErrors();
+  TGraphErrors *grLambdaYield = new TGraphErrors();
+
+  TCanvas *cLambdaPt = new TCanvas("cLambdaPt", "", 1500, 1000);
+  cLambdaPt->Divide(4,2);
+  TList *funListLambdaPt[nPtBinsLambda];
+  float lambdaSignal[nPtBinsLambda];
+  float lambdaSignalErr[nPtBinsLambda];
+  float lambdaBackground[nPtBinsLambda];
+  float lambdaBackgroundErr[nPtBinsLambda];
+  float nLambdaPt[nPtBinsLambda];
+  float nLambdaPtErr[nPtBinsLambda];
+
+  for(int i=0; i<nPtBinsLambda-1; ++i) {
+    cLambdaPt->cd(i+1);
+    hRecoLambdaPt[i] = (TH1F*)listSP->FindObject(Form("fInvMassLambdawCutsPtBin%i", i));
+    hRecoLambdaPt[i]->SetTitle(Form("%.2f < #it{p}_{T} < %.2f GeV/#it{c}; M_{p#pi} (GeV/#it{c}^{2}); Entries", ptBinLambdaRange[i], ptBinLambdaRange[i+1]));
+    SetStyleHistoMany(hRecoLambdaPt[i], 0, 0);
+    hRecoLambdaPt[i]->Draw();
+    FitLambda(hRecoLambdaPt[i], lambdaSignal[i], lambdaSignalErr[i], lambdaBackground[i], lambdaBackgroundErr[i], massLambda-marginLambda, massLambda+marginLambda);
+    hRecoLambdaPt[i]->GetXaxis()->SetRangeUser(1.1, 1.13);
+    funListLambdaPt[i] = hRecoLambdaPt[i]->GetListOfFunctions();
+    TF1 *fLambdaPtTotal = (TF1*)funListLambdaPt[i]->FindObject("fLambda");
+
+    float amp1Err = fLambdaPtTotal->GetParError(3);
+    float amp2Err = fLambdaPtTotal->GetParError(6);
+    float mean1Err = fLambdaPtTotal->GetParError(4);
+    float mean2Err = fLambdaPtTotal->GetParError(7);
+    float width1Err = fLambdaPtTotal->GetParError(5);
+    float width2Err = fLambdaPtTotal->GetParError(8);
+
+    float amp1 = fLambdaPtTotal->GetParameter(3);
+    float amp2 = fLambdaPtTotal->GetParameter(6);
+    float mean1 = fLambdaPtTotal->GetParameter(4);
+    float mean2 = fLambdaPtTotal->GetParameter(7);
+    float width1 = fLambdaPtTotal->GetParameter(5);
+    float width2 = fLambdaPtTotal->GetParameter(8);
+
+    float meanMass = weightedMean(amp1, mean1, amp2, mean2);
+    float meanMassErr = weightedMeanError(amp1, mean1, amp2, mean2, amp1Err, mean1Err, amp2Err, mean2Err);
+    float meanWidth = weightedMean(amp1, width1, amp2, width2);
+    float meanWidthErr = weightedMeanError(amp1, width1, amp2, width2, amp1Err, width1Err, amp2Err, width2Err);
+
+    lambdaSignal[i] += lambdaBackground[i];
+    nLambdaPtErr[i] = lambdaSignalErr[i];
+    lambdaSignalErr[i] = std::sqrt(lambdaSignalErr[i]*lambdaSignalErr[i] + lambdaBackgroundErr[i]*lambdaBackgroundErr[i]);
+    nLambdaPt[i] = lambdaSignal[i] - lambdaBackground[i];
+
+    grLambdaMass->SetPoint(i, (ptBinLambdaRange[i+1]-ptBinLambdaRange[i])/2.f + ptBinLambdaRange[i],  meanMass);
+    grLambdaMass->SetPointError(i, (ptBinLambdaRange[i+1]-ptBinLambdaRange[i])/2.f, meanMassErr);
+    grLambdaWidth->SetPoint(i, (ptBinLambdaRange[i+1]-ptBinLambdaRange[i])/2.f + ptBinLambdaRange[i],  meanWidth);
+    grLambdaWidth->SetPointError(i, (ptBinLambdaRange[i+1]-ptBinLambdaRange[i])/2.f, meanWidthErr);
+    grLambdaPurity->SetPoint(i, (ptBinLambdaRange[i+1]-ptBinLambdaRange[i])/2.f + ptBinLambdaRange[i], nLambdaPt[i]/lambdaSignal[i] *100.f);
+    grLambdaPurity->SetPointError(i, (ptBinLambdaRange[i+1]-ptBinLambdaRange[i])/2.f, 100.f * std::sqrt(nLambdaPtErr[i]*nLambdaPtErr[i]/(lambdaSignal[i]*lambdaSignal[i]) + nLambdaPt[i]*nLambdaPt[i]*lambdaSignalErr[i]*lambdaSignalErr[i]/std::pow(lambdaSignal[i], 4)));
+    grLambdaYield->SetPoint(i, (ptBinLambdaRange[i+1]-ptBinLambdaRange[i])/2.f + ptBinLambdaRange[i], nLambdaPt[i]);
+    grLambdaYield->SetPointError(i, (ptBinLambdaRange[i+1]-ptBinLambdaRange[i])/2.f, nLambdaPtErr[i]);
+  }
+
+  auto *cLambdaProperties = new TCanvas();
+  cLambdaProperties->Divide(2,2);
+  cLambdaProperties->cd(1);
+  SetStyleGraph(grLambdaMass , 0, 0);
+  grLambdaMass->SetTitle("; #it{p}_{T} (GeV/#it{c}); M_{#Lambda} (GeV/#it{c^{2}})");
+  grLambdaMass->Draw("APEZ");
+
+  cLambdaProperties->cd(2);
+  SetStyleGraph(grLambdaWidth , 0, 0);
+  grLambdaWidth->SetTitle("; #it{p}_{T} (GeV/#it{c}); #sigma(M_{#Lambda}) (GeV/#it{c^{2}})");
+  grLambdaWidth->Draw("APEZ");
+
+  cLambdaProperties->cd(3);
+  SetStyleGraph(grLambdaPurity , 0, 0);
+  grLambdaPurity->SetTitle("; #it{p}_{T} (GeV/#it{c}); Purity (%)");
+  grLambdaPurity->Draw("APEZ");
+  TF1 *fLambdaPurity = new TF1("fLambdaPurity", "pol0", 0.3, 4.3);
+  fLambdaPurity->SetLineColor(fColors[0]);
+  fLambdaPurity->SetLineStyle(2);
+//  fLambdaPurity->SetParameter(0, computeWeightedAverage(hRecoLambdaPtPurity, grLambdaPurity, 0.3, 4.3));
+  fLambdaPurity->Draw("same");
+  TLatex purity;
+  purity.SetTextFont(43);
+  purity.SetTextSize(21);
+  purity.SetNDC(kTRUE);
+  purity.DrawLatex(0.65, 0.25, Form("Purity (%.1f %%)", fLambdaPurity->GetParameter(0)));
+
 
   auto* cShared = new TCanvas("cShared", "cShared", 1250,1000);
   SetStyleHisto(V0V0shared, 0, 1);
