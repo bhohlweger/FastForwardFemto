@@ -201,6 +201,15 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
 {
   SetStyle();
 
+  float nTriggers = 0.f;
+  float nLambda = 0.f;
+  float nAntiLambda = 0.f;
+  float purLambda = 0.f;
+  float purAntiLambda = 0.f;
+  float nEvt = 0.f;
+  float nProton = 0.f;
+  float nAntiProton = 0.f;
+
   TFile* _file0=TFile::Open(file);
   TList *listSP=0;
   TList *listPID=0;
@@ -224,6 +233,9 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   auto* protonDCAxy = (TH1F*)listSP->FindObject("fProtonDCAxy");
   auto* protonDCAxyCutZ = (TH1F*)listSP->FindObject("fProtonDCAxyCutz");
   auto* protonPt = (TH1F*)listSP->FindObject("fProtonPt");
+  nProton = protonPt->GetEntries();
+  auto* antiprotonPt = (TH1F*)listSP->FindObject("fAntiProtonPt");
+  nAntiProton = antiprotonPt->GetEntries();
   auto* protonPhi = (TH1F*)listSP->FindObject("fProtonPhi");
   auto* protonEta = (TH1F*)listSP->FindObject("fProtonEta");
   auto* lambdaPt = (TH1F*)listSP->FindObject("fLambdaPt");
@@ -247,6 +259,8 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   auto *cCutStats = new TCanvas();
   SetStyleHisto(histCutStats, 0, 1);
   histCutStats->Draw();
+  nTriggers = histCutStats->GetBinContent(1);
+  nEvt = histCutStats->GetBinContent(16);
   cCutStats->Print("ANplot/CutStats.pdf");
 
   auto *cEventProps= new TCanvas();
@@ -391,7 +405,9 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   TList *funListLambda;
   FitLambda(hRecoLambdaM, lambdaSignalAll, lambdaSignalAllErr, lambdaBackgroundAll, lambdaBackgroundAllErr, massLambda-marginLambda, massLambda+marginLambda);
   std::cout << "Lambda \n";
-  std::cout << "Signal " << lambdaSignalAll << " Background " << lambdaBackgroundAll << " S/B " << lambdaSignalAll/lambdaBackgroundAll << "\n";
+  std::cout << "Signal " << lambdaSignalAll << " Background " << lambdaBackgroundAll << " S/B " << lambdaSignalAll/lambdaBackgroundAll << " Purity " << lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f << "\n";
+  nLambda = lambdaSignalAll;
+  purLambda = lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f;
   hRecoLambdaM->GetXaxis()->SetRangeUser(1.1, 1.13);
   funListLambda = hRecoLambdaM->GetListOfFunctions();
   TF1 *fLambdaTotal = (TF1*)funListLambda->FindObject("fLambda");
@@ -421,7 +437,9 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   hRecoAntiLambdaM->Draw("PE");
   FitLambda(hRecoAntiLambdaM, lambdaSignalAll, lambdaSignalAllErr, lambdaBackgroundAll, lambdaBackgroundAllErr, massLambda-marginLambda, massLambda+marginLambda);
   std::cout << "Lambda \n";
-  std::cout << "Signal " << lambdaSignalAll << " Background " << lambdaBackgroundAll << " S/B " << lambdaSignalAll/lambdaBackgroundAll << "\n";
+  std::cout << "Signal " << lambdaSignalAll << " Background " << lambdaBackgroundAll << " S/B " << lambdaSignalAll/lambdaBackgroundAll << " Purity " << lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f << "\n";
+  nAntiLambda = lambdaSignalAll;
+  purAntiLambda = lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f;
   hRecoAntiLambdaM->GetXaxis()->SetRangeUser(1.1, 1.13);
   funListLambda = hRecoAntiLambdaM->GetListOfFunctions();
   fLambdaTotal = (TF1*)funListLambda->FindObject("fLambda");
@@ -552,4 +570,13 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   cShared->cd(4)->SetLogy();
   aV0apshared->Draw("hist");
   cShared->Print("ANplot/SharedTracks.pdf");
+
+  // OUTPUT
+  std::cout << "==========================\n";
+  std::cout << "kINT7 triggers \t" << Form("%.1f", nTriggers/(1E6)) << " x E6 \n";
+  std::cout << "nEvts \t\t" << Form("%.1f", nEvt/(1E6)) << " x E6 \n";
+  std::cout << "nLambda \t" << nLambda << "\tPurity " << purLambda << "\tFraction " << nLambda/nEvt << "\tfrac err " << std::sqrt(nLambda/(nEvt*nEvt) + nLambda*nLambda/(nEvt*nEvt*nEvt)) << "\n";
+  std::cout << "nAntiLambda \t" << nAntiLambda << "\tPurity " << purAntiLambda << "\tFraction " << nAntiLambda/nEvt << "\tfrac err " << std::sqrt(nAntiLambda/(nEvt*nEvt) + nAntiLambda*nAntiLambda/(nEvt*nEvt*nEvt)) << "\n";
+  std::cout << "nProton \t" << nProton << "\tFraction " << nProton/nEvt << "\tfrac err " << std::sqrt(nProton/(nEvt*nEvt) + nProton*nProton/(nEvt*nEvt*nEvt)) << "\n";
+  std::cout << "nAntiProton \t" << nAntiProton << "\tFraction " << nAntiProton/nEvt << "\tfrac err " << std::sqrt(nAntiProton/(nEvt*nEvt) + nAntiProton*nAntiProton/(nEvt*nEvt*nEvt)) << "\n";
 }
