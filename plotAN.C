@@ -140,14 +140,17 @@ void FitLambda(TH1F* histo, float &signal, float &signalErr, float &background, 
 
   // fit signal only
   TF1 *fSignalSingleGauss = new TF1("fSignalSingleGauss", "gaus", 1.095, 1.15);
+//  fSignalSingleGauss->SetParameter(1, 1.115);
   signalOnly->Fit("fSignalSingleGauss", "SRQ0", "", 1.1075, 1.1235);
 
   TF1 *fSignalGauss = new TF1("fSignalGauss", "gaus(0) + gaus(3)", 1.1, 1.3);
   fSignalGauss->SetParameter(0, 0.05 * histo->GetMaximum());
   fSignalGauss->SetParameter(1, fSignalSingleGauss->GetParameter(1));
+  fSignalGauss->SetParLimits(1, 1.115-0.01, 1.115+0.01);
   fSignalGauss->SetParameter(2, 5.f*fSignalSingleGauss->GetParameter(2));
   fSignalGauss->SetParameter(3, 0.95 * histo->GetMaximum());
   fSignalGauss->SetParameter(4, fSignalSingleGauss->GetParameter(1));
+  fSignalGauss->SetParLimits(4, 1.115-0.01, 1.115+0.01);
   fSignalGauss->SetParameter(5, fSignalSingleGauss->GetParameter(2));
   TFitResultPtr r = signalOnly->Fit("fSignalGauss", "SRQ0", "", 1.1075, 1.1235);
 
@@ -320,12 +323,12 @@ void plotAN(const char* file="~/Results/LHC17p_fast/AnalysisResults.root")
   cQAproton->cd(4)->SetLogy();
   protonDCAxy->Draw("hist");
   protonDCAxyCutZ->Draw("hist same");
-  auto *cutLineC = new TLine(-0.2, 0, -0.2, protonDCAxy->GetMaximum());
+  auto *cutLineC = new TLine(-0.1, 0, -0.1, protonDCAxy->GetMaximum());
   cutLineC->SetLineColor(kGray+3);
   cutLineC->SetLineWidth(2);
   cutLineC->SetLineStyle(2);
   cutLineC->Draw("same");
-  auto *cutLineD = new TLine(0.2, 0, 0.2, protonDCAxy->GetMaximum());
+  auto *cutLineD = new TLine(0.1, 0, 0.1, protonDCAxy->GetMaximum());
   cutLineD->SetLineColor(kGray+3);
   cutLineD->SetLineWidth(2);
   cutLineD->SetLineStyle(2);
