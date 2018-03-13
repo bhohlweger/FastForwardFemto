@@ -212,12 +212,12 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   const float normleft = 0.2;
   const float normright = 0.4;
 
-  const int energy = 5; // TeV
+  const int energy = 13; // TeV
 
-  const float r = 1.144;
+  const float r = 1.201;
   const float rErr = 0.019;
-  const float rSystErrUp = 0.069;
-  const float rSystErrDown = 0.012;
+  const float rSystErrUp = 0.001;
+  const float rSystErrDown = 0.027;
 
   SetStyle();
 
@@ -251,10 +251,19 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   TH1F* histME_relK_ApAp = (TH1F*)listTP->FindObject("AntiProtonAntiProton_relK_FB_ME");
   if(!histME_relK_ApAp) histME_relK_ApAp = (TH1F*)listTP->FindObject("fAntiProtonAntiProtonRelKME");
 
-
+  TDirectoryFile *dirResults=(TDirectoryFile*)(_file0->FindObjectAny("Results"));
+  TList *Results;
+  dirResults->GetObject("Results",Results);
+  TList* tmpFolder=(TList*)Results->FindObject("Particle0_Particle4");
+  TH1F* histRE_relK_Xip = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle4");
+  TH1F* histME_relK_Xip = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle4");
+  tmpFolder=(TList*)Results->FindObject("Particle1_Particle5");
+  TH1F* histRE_relK_AXiAp = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle5");
+  TH1F* histME_relK_AXiAp = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle5");
   TH1F *hist_CF_Lp_ALAp_exp[3];
   TH1F *hist_CF_LL_ALAL_exp[3];
   TH1F *hist_CF_pp_ApAp_exp[3];
+  TH1F *hist_CF_pXi_ApAXi_exp[3];
 
   hist_CF_Lp_ALAp_exp[0] = Calculate_CF(histRE_relK_Lp,histME_relK_Lp,"hist_CF_Lp_exp",normleft,normright);
   hist_CF_Lp_ALAp_exp[1] = Calculate_CF(histRE_relK_ALAp,histME_relK_ALAp,"hist_CF_ALAp_exp",normleft,normright);
@@ -265,27 +274,36 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   hist_CF_pp_ApAp_exp[0] = Calculate_CF(histRE_relK_pp,histME_relK_pp,"hist_CF_pp",normleft,normright);
   hist_CF_pp_ApAp_exp[1] = Calculate_CF(histRE_relK_ApAp,histME_relK_ApAp,"hist_CF_ApAp",normleft,normright);
   hist_CF_pp_ApAp_exp[2] = add_CF(hist_CF_pp_ApAp_exp[0],hist_CF_pp_ApAp_exp[1],"hist_CF_pp_ApAp_exp_sum");
+  hist_CF_pXi_ApAXi_exp[0] = Calculate_CF(histRE_relK_Xip,histME_relK_Xip,"hist_CF_pXi",normleft,normright);
+  hist_CF_pXi_ApAXi_exp[1] = Calculate_CF(histRE_relK_AXiAp,histME_relK_AXiAp,"hist_CF_ApAXi",normleft,normright);
+  hist_CF_pXi_ApAXi_exp[2] = add_CF(hist_CF_pXi_ApAXi_exp[0],hist_CF_pXi_ApAXi_exp[1],"hist_CF_pXi_ApAXi_exp_sum");
 
   SetStyleHisto(hist_CF_pp_ApAp_exp[0], 1,1);
   SetStyleHisto(hist_CF_Lp_ALAp_exp[0], 1,1);
   SetStyleHisto(hist_CF_LL_ALAL_exp[0], 1,1);
+  SetStyleHisto(hist_CF_pXi_ApAXi_exp[0], 1,1);
   SetStyleHisto(hist_CF_pp_ApAp_exp[1], 0,2);
   SetStyleHisto(hist_CF_Lp_ALAp_exp[1], 0,2);
   SetStyleHisto(hist_CF_LL_ALAL_exp[1], 0,2);
+  SetStyleHisto(hist_CF_pXi_ApAXi_exp[1], 0,2);
   SetStyleHisto(hist_CF_pp_ApAp_exp[2], 0,0);
   SetStyleHisto(hist_CF_Lp_ALAp_exp[2], 0,0);
   SetStyleHisto(hist_CF_LL_ALAL_exp[2], 0,0);
+  SetStyleHisto(hist_CF_pXi_ApAXi_exp[2], 0,0);
 
   // SYSTEMATIC UNCERTAINTIES
   TString input_sys_pp = "C2totalsysPP.root";
   TString input_sys_pL = "C2totalsysPL.root";
   TString input_sys_LL = "C2totalsysLL.root";
+  TString input_sys_pXi = "C2totalsysPXi.root";
   TFile* file_sys_pp = new TFile(input_sys_pp.Data());
   TFile* file_sys_pL = new TFile(input_sys_pL.Data());
+  TFile* file_sys_pXi = new TFile(input_sys_pXi.Data());
   TFile* file_sys_LL = new TFile(input_sys_LL.Data());
   TH1F* hist_sys_pp = (TH1F*)file_sys_pp->Get("C2totalsysPP");
   TH1F* hist_sys_pL = (TH1F*)file_sys_pL->Get("C2totalsysPL");
   TH1F* hist_sys_LL = (TH1F*)file_sys_LL->Get("C2totalsysLL");
+  TH1F* hist_sys_pXi = (TH1F*)file_sys_pXi->Get("C2totalsysPXi");
 
   // Sim DATA
   TFile* _file0sim=TFile::Open(simfile);
@@ -304,9 +322,18 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   TH1F* histME_relK_ppsim = (TH1F*)listTPsim->FindObject("fProtonProtonRelKME");
   TH1F* histRE_relK_ApApsim = (TH1F*)listTPsim->FindObject("fAntiProtonAntiProtonRelK");
   TH1F* histME_relK_ApApsim = (TH1F*)listTPsim->FindObject("fAntiProtonAntiProtonRelKME");
+  TDirectoryFile *dirResultsSim=(TDirectoryFile*)(_file0sim->FindObjectAny("MBResults"));
+  dirResultsSim->GetObject("MBResults",Results);
+  tmpFolder=(TList*)Results->FindObject("Particle0_Particle4");
+  TH1F* histRE_relK_Xipsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle4");
+  TH1F* histME_relK_Xipsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle4");
+  tmpFolder=(TList*)Results->FindObject("Particle1_Particle5");
+  TH1F* histRE_relK_AXiApsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle5");
+  TH1F* histME_relK_AXiApsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle5");
   TH1F *hist_CF_Lp_ALAp_sim[3];
   TH1F *hist_CF_LL_ALAL_sim[3];
   TH1F *hist_CF_pp_ApAp_sim[3];
+  TH1F *hist_CF_pXi_ApAXi_sim[3];
   hist_CF_Lp_ALAp_sim[0] = Calculate_CF(histRE_relK_Lpsim,histME_relK_Lpsim,"hist_CF_Lp_sim",normleft,normright);
   hist_CF_Lp_ALAp_sim[1] = Calculate_CF(histRE_relK_ALApsim,histME_relK_ALApsim,"hist_CF_ALAp_sim",normleft,normright);
   hist_CF_Lp_ALAp_sim[2] = add_CF(hist_CF_Lp_ALAp_sim[0],hist_CF_Lp_ALAp_sim[1],"hist_CF_Lp_ALAp_sim_sum");
@@ -316,9 +343,13 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   hist_CF_pp_ApAp_sim[0] = Calculate_CF(histRE_relK_ppsim,histME_relK_ppsim,"hist_CF_ppsim",normleft,normright);
   hist_CF_pp_ApAp_sim[1] = Calculate_CF(histRE_relK_ApApsim,histME_relK_ApApsim,"hist_CF_ApApsim",normleft,normright);
   hist_CF_pp_ApAp_sim[2] = add_CF(hist_CF_pp_ApAp_sim[0],hist_CF_pp_ApAp_sim[1],"hist_CF_pp_ApAp_sim_sum");
+  hist_CF_pXi_ApAXi_sim[0] = Calculate_CF(histRE_relK_Xipsim,histME_relK_Xipsim,"hist_CF_pXisim",normleft,normright);
+  hist_CF_pXi_ApAXi_sim[1] = Calculate_CF(histRE_relK_AXiApsim,histME_relK_AXiApsim,"hist_CF_ApAXisim",normleft,normright);
+  hist_CF_pXi_ApAXi_sim[2] = add_CF(hist_CF_pXi_ApAXi_sim[0],hist_CF_pXi_ApAXi_sim[1],"hist_CF_pXi_ApAXi_sim_sum");
   SetStyleHisto(hist_CF_pp_ApAp_sim[2], 1,2);
   SetStyleHisto(hist_CF_Lp_ALAp_sim[2], 1,2);
   SetStyleHisto(hist_CF_LL_ALAL_sim[2], 1,2);
+  SetStyleHisto(hist_CF_pXi_ApAXi_sim[2], 1,2);
 
   // UNCERTAINTIES ON THE FIT
   TFile *systFit = TFile::Open(CATSfile);
@@ -393,8 +424,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   baselineLL->SetLineColor(fFillColors[6]);
 
   // PLOTTING
-  TCanvas *Can_CF = new TCanvas("Can_CF","Can_CF",0,0,1500,1100);
-  Can_CF->Divide(3,2);
+  TCanvas *Can_CF = new TCanvas("Can_CF","Can_CF",0,0,2000,1100);
+  Can_CF->Divide(4,2);
   Can_CF->cd(1);
   Can_CF->cd(1)->SetRightMargin(right);
   Can_CF->cd(1)->SetTopMargin(top);
@@ -428,6 +459,15 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Can_CF->cd(4);
   Can_CF->cd(4)->SetRightMargin(right);
   Can_CF->cd(4)->SetTopMargin(top);
+  hist_CF_pXi_ApAXi_exp[0]->Draw("pe");
+  hist_CF_pXi_ApAXi_exp[1]->Draw("pe same");
+  hist_CF_pXi_ApAXi_exp[0]->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
+  hist_CF_pXi_ApAXi_exp[0]->GetXaxis()->SetRangeUser(0, 0.4);
+  hist_CF_pXi_ApAXi_exp[0]->GetXaxis()->SetNdivisions(505);
+  hist_CF_pXi_ApAXi_exp[0]->GetYaxis()->SetRangeUser(0.5, 7.5);
+  Can_CF->cd(5);
+  Can_CF->cd(5)->SetRightMargin(right);
+  Can_CF->cd(5)->SetTopMargin(top);
   TH1F *ppRatio = (TH1F*)hist_CF_pp_ApAp_exp[0]->Clone();
   auto* line = new TLine(0,1,0.4,1);
   line->SetLineColor(kGray+3);
@@ -439,9 +479,9 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   ppRatio->SetMarkerStyle(fMarkers[2]);
   ppRatio->Draw("pe");
   line->Draw("same");
-  Can_CF->cd(5);
-  Can_CF->cd(5)->SetRightMargin(right);
-  Can_CF->cd(5)->SetTopMargin(top);
+  Can_CF->cd(6);
+  Can_CF->cd(6)->SetRightMargin(right);
+  Can_CF->cd(6)->SetTopMargin(top);
   TH1F *pLRatio = (TH1F*)hist_CF_Lp_ALAp_exp[0]->Clone();
   pLRatio->Divide(hist_CF_Lp_ALAp_exp[1]);
   pLRatio->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)_{p#Lambda}/#it{C}(k*)_{#bar{p}#bar{#Lambda}}");
@@ -449,9 +489,9 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   pLRatio->SetMarkerStyle(fMarkers[2]);
   pLRatio->Draw("pe");
   line->Draw("same");
-  Can_CF->cd(6);
-  Can_CF->cd(6)->SetRightMargin(right);
-  Can_CF->cd(6)->SetTopMargin(top);
+  Can_CF->cd(7);
+  Can_CF->cd(7)->SetRightMargin(right);
+  Can_CF->cd(7)->SetTopMargin(top);
   TH1F *LLRatio = (TH1F*)hist_CF_LL_ALAL_exp[0]->Clone();
   LLRatio->Divide(hist_CF_LL_ALAL_exp[1]);
   LLRatio->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)_{#Lambda#Lambda}/#it{C}(k*)_{#bar{#Lambda}#bar{#Lambda}}");
@@ -459,10 +499,20 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   LLRatio->SetMarkerStyle(fMarkers[2]);
   LLRatio->Draw("pe");
   line->Draw("same");
+  Can_CF->cd(8);
+  Can_CF->cd(8)->SetRightMargin(right);
+  Can_CF->cd(8)->SetTopMargin(top);
+  TH1F *pXiRatio = (TH1F*)hist_CF_pXi_ApAXi_exp[0]->Clone();
+  pXiRatio->Divide(hist_CF_pXi_ApAXi_exp[1]);
+  pXiRatio->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)_{p#Xi^{-}}/#it{C}(k*)_{#bar{p}#Xi^{+}}");
+  pXiRatio->GetYaxis()->SetRangeUser(0,2);
+  pXiRatio->SetMarkerStyle(fMarkers[2]);
+  pXiRatio->Draw("pe");
+  line->Draw("same");
   Can_CF->Print("ANplot/CF_pp-apap.pdf");
 
-  TCanvas *Can_CF_fitting = new TCanvas("Can_CF_fitting","Can_CF_fitting",0,0,1500,550);
-  Can_CF_fitting->Divide(3,1);
+  TCanvas *Can_CF_fitting = new TCanvas("Can_CF_fitting","Can_CF_fitting",0,0,1000,1100);
+  Can_CF_fitting->Divide(2,2);
   Can_CF_fitting->cd(1);
   Can_CF_fitting->cd(1)->SetRightMargin(right);
   Can_CF_fitting->cd(1)->SetTopMargin(top);
@@ -539,10 +589,11 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Tgraph_syserror_LL_ALAL->GetXaxis()->SetNdivisions(505);
   Tgraph_syserror_LL_ALAL->GetYaxis()->SetRangeUser(0.25, 3);
   if(grFemtoLL) grFemtoLL->Draw("l3 same");
-  if(grFemtoLLStar) grFemtoLLStar->Draw("l3 same");
+//  if(grFemtoLLStar) grFemtoLLStar->Draw("l3 same");
   Tgraph_syserror_LL_ALAL->SetFillColorAlpha(kBlack, 0.4);
   Tgraph_syserror_LL_ALAL->Draw("2 same");
-  hist_CF_LL_ALAL_exp[2]->Draw("pe same");  TLegend *legLL = new TLegend(0.335,0.545,0.75,0.81);
+  hist_CF_LL_ALAL_exp[2]->Draw("pe same");
+  TLegend *legLL = new TLegend(0.335,0.545,0.75,0.81);
   legLL->SetBorderSize(0);
   legLL->SetTextFont(42);
   legLL->SetTextSize(gStyle->GetTextSize()*0.75);
@@ -555,14 +606,44 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
 
   BeamText.DrawLatex(0.35, 0.875, Form("ALICE pp #sqrt{#it{s}} = %i TeV", energy));
   text.DrawLatex(0.35, 0.825, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
+
+
+  Can_CF_fitting->cd(4);
+  Can_CF_fitting->cd(4)->SetRightMargin(right);
+  Can_CF_fitting->cd(4)->SetTopMargin(top);
+  TGraphErrors *Tgraph_syserror_pXi_ApAXi = DrawSystematicError(hist_CF_pXi_ApAXi_exp[2], hist_sys_pXi, 0.01);
+  Tgraph_syserror_pXi_ApAXi->SetLineColor(kWhite);
+  Tgraph_syserror_pXi_ApAXi->Draw("ap");
+//  baselineLL->Draw("same");
+  Tgraph_syserror_pXi_ApAXi->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
+  Tgraph_syserror_pXi_ApAXi->GetXaxis()->SetRangeUser(0, 0.2);
+  Tgraph_syserror_pXi_ApAXi->GetXaxis()->SetNdivisions(505);
+  Tgraph_syserror_pXi_ApAXi->GetYaxis()->SetRangeUser(0.5, 7.5);
+  Tgraph_syserror_pXi_ApAXi->SetFillColorAlpha(kBlack, 0.4);
+  Tgraph_syserror_pXi_ApAXi->Draw("2 same");
+  hist_CF_pXi_ApAXi_exp[2]->Draw("pe same");
+  TLegend *legpXi = new TLegend(0.335,0.545,0.75,0.81);
+  legpXi->SetBorderSize(0);
+  legpXi->SetTextFont(42);
+  legpXi->SetTextSize(gStyle->GetTextSize()*0.75);
+  legpXi->AddEntry(hist_CF_pp_ApAp_exp[2], "p#Xi^{-} #oplus #bar{p}#Xi^{+} pairs", "pe");
+  legpXi->AddEntry(grFakeSyst, "Syst. uncertainties", "f");
+  legpXi->AddEntry((TObject*)nullptr, "Femtoscopic fit (Coulomb)","l");
+  legpXi->AddEntry((TObject*)nullptr,"Femtoscopic fit (HAL QCD)","l");
+  legpXi->Draw("same");
+  ref.DrawLatex(0.43, 0.515, "Nucl. Phys. A967 (2017) 856.");
+  ref.DrawLatex(0.43, 0.475, "PoS LATTICE2016 (2017) 116.");
+
+  BeamText.DrawLatex(0.35, 0.875, Form("ALICE pp #sqrt{#it{s}} = %i TeV", energy));
+  text.DrawLatex(0.35, 0.825, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
   Can_CF_fitting->Print("ANplot/CF.pdf");
 
 
   // Compare to Pythia
   auto* grDummy = new TH1F("hDummy", "; k* (GeV/#it{c}); #it{C}(k*)", 100, 0,2);
 
-  TCanvas *Can_CF_Pythia= new TCanvas("Can_CF_Pythia","Can_CF_Pythia",0,0,1500,550);
-  Can_CF_Pythia->Divide(3,1);
+  TCanvas *Can_CF_Pythia= new TCanvas("Can_CF_Pythia","Can_CF_Pythia",0,0,1000,1100);
+  Can_CF_Pythia->Divide(2,2);
   Can_CF_Pythia->cd(1);
   Can_CF_Pythia->cd(1)->SetRightMargin(right);
   Can_CF_Pythia->cd(1)->SetTopMargin(top);
@@ -593,67 +674,15 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   hist_CF_LL_ALAL_exp[2]->Draw("pe same");
   hist_CF_LL_ALAL_sim[2]->Draw("pe same");
 
-  TF1 *baselinepXi = new TF1("baselinepXi", "pol1", 0, 1);
-  baselinepXi->SetParameter(0, 1.);
-  baselinepXi->SetParameter(1, 0);
-  baselinepXi->SetLineStyle(2);
-  baselinepXi->SetLineColor(fFillColors[6]);
-  TLatex RatioPP;
-  RatioPP.SetTextSize(gStyle->GetTextSize());
-  RatioPP.SetNDC(kTRUE);
-
-  TCanvas *Can_CF_RatioSimExp = new TCanvas("Can_CF_RatioSimExp","Can_CF_RatioSimExp",0,0,1500,1500);
-  Can_CF_RatioSimExp->Divide(3,2);
-
-//  TH1F* RatioSimData_CF_PP_APAP = (TH1F*)histME_relK_pp->Clone("RatioSimDataOP");
-//  RatioSimData_CF_PP_APAP->Divide(histME_relK_ppsim);
-  TH1F* RatioSimData_CF_PP_APAP = (TH1F*)hist_CF_pp_ApAp_exp[2]->Clone("RatioSimDataOP");
-  RatioSimData_CF_PP_APAP->Divide(hist_CF_pp_ApAp_sim[2]);
-  RatioSimData_CF_PP_APAP->SetTitle("; k* (GeV/#it{c}); #it{SE}(k*)_{Bernie}/#it{SE}(k*)_{Andi}");
-  RatioSimData_CF_PP_APAP->GetYaxis()->SetTitleOffset(1.4);
-  Can_CF_RatioSimExp->cd(4);
-  RatioSimData_CF_PP_APAP->DrawCopy();
-  RatioSimData_CF_PP_APAP->GetXaxis()->SetRangeUser(0,0.3);
-  RatioPP.DrawLatex(0.5, 0.8, "pp #oplus #bar{pp}");
-  Can_CF_RatioSimExp->cd(1);
-  RatioSimData_CF_PP_APAP->DrawCopy();
-  baselinepXi->Draw("same");
-  RatioPP.DrawLatex(0.5, 0.8, "pp #oplus #bar{pp}");
-
-
-
-//  TH1F* RatioSimData_CF_PL_APAL = (TH1F*)histME_relK_Lp->Clone("RatioSimDataPL");
-//  RatioSimData_CF_PL_APAL->Divide(histME_relK_Lpsim);
-  TH1F* RatioSimData_CF_PL_APAL = (TH1F*)hist_CF_Lp_ALAp_exp[2]->Clone("RatioSimDataPL");
-  RatioSimData_CF_PL_APAL->Divide(hist_CF_Lp_ALAp_sim[2]);
-  RatioSimData_CF_PL_APAL->SetTitle("; k* (GeV/#it{c}); #it{SE}(k*)_{Bernie}/#it{SE}(k*)_{Andi}");
-  RatioSimData_CF_PL_APAL->GetYaxis()->SetTitleOffset(1.4);
-  Can_CF_RatioSimExp->cd(5);
-  RatioSimData_CF_PL_APAL->DrawCopy();
-  RatioPP.DrawLatex(0.5, 0.8, "p#Lambda #oplus #bar{p#Lambda}");
-  RatioSimData_CF_PL_APAL->GetXaxis()->SetRangeUser(0,0.3);
-  Can_CF_RatioSimExp->cd(2);
-  RatioSimData_CF_PL_APAL->DrawCopy("pe");
-  baselinepXi->Draw("same");
-  RatioPP.DrawLatex(0.5, 0.8, "p#Lambda #oplus #bar{p#Lambda}");
-
-//  TH1F* RatioSimData_CF_LL_ALAL = (TH1F*)histME_relK_LL->Clone("RatioSimDataLL");
-//  RatioSimData_CF_LL_ALAL->Divide(histME_relK_LLsim);
-  TH1F* RatioSimData_CF_LL_ALAL = (TH1F*)hist_CF_LL_ALAL_exp[2]->Clone("RatioSimDataLL");
-  RatioSimData_CF_LL_ALAL->Divide(hist_CF_LL_ALAL_sim[2]);
-  RatioSimData_CF_LL_ALAL->SetTitle("; k* (GeV/#it{c}); #it{SE}(k*)_{Bernie}/#it{SE}(k*)_{Andi}");
-  RatioSimData_CF_LL_ALAL->GetYaxis()->SetTitleOffset(1.4);
-  Can_CF_RatioSimExp->cd(6);
-  RatioSimData_CF_LL_ALAL->DrawCopy("pe");
-  RatioPP.DrawLatex(0.5, 0.8, "#Lambda#Lambda #oplus #bar{#Lambda#Lambda}");
-  RatioSimData_CF_LL_ALAL->GetXaxis()->SetRangeUser(0,0.3);
-  Can_CF_RatioSimExp->cd(3);
-  RatioSimData_CF_LL_ALAL->DrawCopy("pe");
-  baselinepXi->Draw("same");
-  RatioPP.DrawLatex(0.5, 0.8, "#Lambda#Lambda #oplus #bar{#Lambda#Lambda}");
-
-
-
+  Can_CF_Pythia->cd(4);
+  Can_CF_Pythia->cd(4)->SetRightMargin(right);
+  Can_CF_Pythia->cd(4)->SetTopMargin(top);
+  grDummy->Draw();
+  grDummy->GetYaxis()->SetRangeUser(0.25, 3);
+  Tgraph_syserror_pXi_ApAXi->SetFillColorAlpha(kBlack, 0.4);
+  Tgraph_syserror_pXi_ApAXi->Draw("2 same");
+  hist_CF_pXi_ApAXi_exp[2]->Draw("pe same");
+  hist_CF_pXi_ApAXi_sim[2]->Draw("pe same");
 
   Can_CF_Pythia->Print("ANplot/CF_pythia.pdf");
 }
