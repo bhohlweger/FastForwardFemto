@@ -911,23 +911,14 @@ int templateFitter(const char* file, const char* file2) {
   hist_Lambda_pt_spectrum->Scale(1. / hist_Lambda_pt_spectrum->GetBinWidth(1));
 
   // Purity
-  TH1F* hist_protonPurity_combined_withSelection[Purity_Ptbins];  // Includes MC
-                                                                  // estimated
-                                                                  // monte carlo
-                                                                  // purity
   TH1F* hist_proton_purity = new TH1F(
       "hist_proton_purity", "Purity of protons estimated from Monte Carlo",
       Purity_Ptbins, pt_proton_threshold_low, pt_proton_threshold_up);
   TH1F* hist_proton_all = new TH1F(
       "hist_proton_purity", "Purity of protons estimated from Monte Carlo",
       Purity_Ptbins, pt_proton_threshold_low, pt_proton_threshold_up);
-  TH1F* hist_proton_contamination =
-      new TH1F("hist_proton_contamination",
-               "Contamination of protons estimated from Monte Carlo",
-               Purity_Ptbins, pt_proton_switch, pt_proton_threshold_up);
 
   Double_t purity_proton_ptweighted = 0.;
-  Double_t purity_proton_ptweighted_error = 0.;
   Double_t purity_proton_weights = 0.;
 
   TString HistName = "fProtonsCorrectlyIdentified";
@@ -941,7 +932,6 @@ int templateFitter(const char* file, const char* file2) {
 
   for (int ptbin = 0; ptbin < hist_proton_purity->GetEntries(); ptbin++) {
     Float_t purity = hist_proton_purity->GetBinContent(ptbin + 1);
-    Float_t purityErr = hist_proton_purity->GetBinError(ptbin + 1);
 
     Float_t ptval = hist_proton_purity->GetBinCenter(ptbin + 1);
 
@@ -1232,12 +1222,6 @@ int templateFitter(const char* file, const char* file2) {
   TH1D* hist_proton_fractions_secondary =
       new TH1D("hist_proton_fractions_secondary",
                "Fraction of secondary protons", DCA_Ptbins, 0.5, 4.05);
-  TH1D* hist_proton_fractions_secondaryLambda =
-      new TH1D("hist_proton_fractions_secondaryLambda",
-               "Fraction of secondary protons", DCA_Ptbins, 0.5, 4.05);
-  TH1D* hist_proton_fractions_secondarySigma =
-      new TH1D("hist_proton_fractions_secondarySigma",
-               "Fraction of secondary protons", DCA_Ptbins, 0.5, 4.05);
   TH1D* hist_proton_fractions_material =
       new TH1D("hist_proton_fractions_material", "Fraction of material protons",
                DCA_Ptbins, 0.5, 4.05);
@@ -1323,6 +1307,9 @@ int templateFitter(const char* file, const char* file2) {
     // between 0 and 1
     // fit->Constrain(2,0.,1.);               // constrain fraction 2 to be
     // between 0 and 1
+    if(ptbin == 13)  fit->Constrain(0,0.,1.);
+    if(ptbin == 15)  fit->Constrain(0,0.,1.);
+    if(ptbin == 18)  fit->Constrain(0,0.,10.);
     fit->SetRangeX(hist_proton_DCAxy_projection_all_exp[ptbin]->FindBin(-2.4),
                    hist_proton_DCAxy_projection_all_exp[ptbin]->FindBin(
                        2.4));  // use only the first 15 bins in the fit
@@ -1624,11 +1611,8 @@ int templateFitter(const char* file, const char* file2) {
       ptweight_proton_pt;  // average fraction of Lambdas feeding to protons
   fraction_proton_material_ptweighted /=
       ptweight_proton_pt;  // average fraction of material protons
-  Double_t lambdapar_protonproton_ptweighted =
-      pow(fraction_proton_primary_ptweighted,
-          2.);  // calculate the average Lambda value;
 
-  TFile* outFile = new TFile("output.root", "RECREATE");
+  TFile* outFile = new TFile("templateOutput.root", "RECREATE");
 
   const Int_t PIDBinf_for_repo = 1;
 
@@ -1649,7 +1633,7 @@ int templateFitter(const char* file, const char* file2) {
             [PIDBinf_for_repo],
         (TH1F*)hist_proton_DCAxy_projection_material_normalized_ExpEvts_weight
             [PIDBinf_for_repo],
-        "", "DCA_{xy} (cm)", "Counts",  2, 1, 1, 2, 1, 3, 1, 4, 1, kFALSE, true);
+        "", "DCA_{xy} (cm)", "Counts",  1, 1, 1, 2, 1, 3, 1, 4, 1, kFALSE, true);
     hist_proton_DCAxy_MC_templatesum[PIDBinf_for_repo]->SetLineWidth(2);
     hist_proton_DCAxy_MC_templatesum[PIDBinf_for_repo]->SetLineColor(colors[1]);
     hist_proton_DCAxy_MC_templatesum[PIDBinf_for_repo]->DrawCopy("histo same");
@@ -1738,6 +1722,8 @@ int templateFitter(const char* file, const char* file2) {
              (TH1F*)hist_proton_fractions_secondarySigma_wDCAxyCut, "",
              "#it{p}_{T} (GeV/#it{c})", "Percentage to proton feeddown", 0, 1,
              1, 4, 1, kFALSE);
+    hist_proton_fractions_secondaryLambda_wDCAxyCut->GetYaxis()->SetRangeUser(0,1);
+    hist_proton_fractions_secondarySigma_wDCAxyCut->GetYaxis()->SetRangeUser(0,1);
     SigmaLambdaPercentage->Draw("same");
     Can_LambdaSigma_fractions->Print("ANplot/SigmaLambdaPercentage.pdf");
   }
@@ -1841,6 +1827,9 @@ int templateFitter(const char* file, const char* file2) {
 
       TFractionFitter* fit_CPA = new TFractionFitter(
           hist_lambda_CPA_exp[ptbin], mcDCA_array_CPA);  // initialise
+      if(ptbin == 1) fit_CPA->Constrain(0,0.,1.);
+      if(ptbin == 2) fit_CPA->Constrain(0,0.,10.);
+      if(ptbin == 3) fit_CPA->Constrain(0,0.,10.);
 
       Int_t status = fit_CPA->Fit();  // perform the fit
 
