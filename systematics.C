@@ -1542,7 +1542,7 @@ int systematics(const char* file,const char *output="systematics_output")
   graphError_CLLALAL->Draw("2same");
   CanSysErrorPlotting->cd(4);
   StyleGraph(graphError_Ratio_pp);
-  graphError_Ratio_pp->Fit("fRatioPP", "R", "", 0.01, 0.2);
+  graphError_Ratio_pp->Fit("fRatioPP", "R", "", 0.01, 0.5);
   graphError_Ratio_pp->Draw("ape");
   graphError_Ratio_pp->SetMarkerStyle(20);
   graphError_Ratio_pp->GetXaxis()->SetRangeUser(0,0.16);
