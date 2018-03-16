@@ -132,15 +132,15 @@ void plotMC(const char *simfile = "~/Results/LHC17l3b/AnalysisResults.root")
   }
   e->Print("ANplot/trackSplitting_pLambdapi.pdf");
 
-  auto *f = new TCanvas("res", "res", 1500,550);
-  f->Divide(3,1);
+  auto *f = new TCanvas("res", "res", 1000,1100);
+  f->Divide(2,2);
   f->cd(1);
   f->cd(1)->SetLogz();
   f->cd(1)->SetRightMargin(0.16);
   auto *fppMomCorr = (TH2F*)listTPsim->FindObject("fPpRelKTrueReco");
   fppMomCorr->SetTitle(";k*_{gen}(pp); k*_{rec}(pp)");
-  fppMomCorr->GetXaxis()->SetRangeUser(0, 0.3);
-  fppMomCorr->GetYaxis()->SetRangeUser(0, 0.3);
+  fppMomCorr->GetXaxis()->SetRangeUser(0, 1);
+  fppMomCorr->GetYaxis()->SetRangeUser(0, 1);
   SetStyleHistoMany(fppMomCorr);
   fppMomCorr->Draw("colz");
   f->cd(2);
@@ -148,8 +148,8 @@ void plotMC(const char *simfile = "~/Results/LHC17l3b/AnalysisResults.root")
   f->cd(2)->SetRightMargin(0.16);
   auto *fV0pMomCorr = (TH2F*)listTPsim->FindObject("fV0pRelKTrueReco");
   fV0pMomCorr->SetTitle(";k*_{gen}(p#Lambda); k*_{rec}(p#Lambda)");
-  fV0pMomCorr->GetXaxis()->SetRangeUser(0, 0.3);
-  fV0pMomCorr->GetYaxis()->SetRangeUser(0, 0.3);
+  fV0pMomCorr->GetXaxis()->SetRangeUser(0, 1);
+  fV0pMomCorr->GetYaxis()->SetRangeUser(0, 1);
   SetStyleHistoMany(fV0pMomCorr);
   fV0pMomCorr->Draw("colz");
   f->cd(3);
@@ -157,10 +157,26 @@ void plotMC(const char *simfile = "~/Results/LHC17l3b/AnalysisResults.root")
   f->cd(3)->SetRightMargin(0.16);
   auto *fV0V0MomCorr = (TH2F*)listTPsim->FindObject("fV0V0RelKTrueReco");
   fV0V0MomCorr->SetTitle(";k*_{gen}(#Lambda#Lambda); k*_{rec}(#Lambda#Lambda)");
-  fV0V0MomCorr->GetXaxis()->SetRangeUser(0, 0.3);
-  fV0V0MomCorr->GetYaxis()->SetRangeUser(0, 0.3);
+  fV0V0MomCorr->GetXaxis()->SetRangeUser(0, 1);
+  fV0V0MomCorr->GetYaxis()->SetRangeUser(0, 1);
   SetStyleHistoMany(fV0V0MomCorr);
   fV0V0MomCorr->Draw("colz");
+  f->cd(4);
+  f->cd(4)->SetLogz();
+  f->cd(4)->SetRightMargin(0.16);
+  TDirectoryFile *dirResults=(TDirectoryFile*)(_file0sim->FindObjectAny("MBResultQA"));
+  TList *Results;
+  dirResults->GetObject("MBResultQA",Results);
+  TList* tmpFolder=(TList*)Results->FindObject("QA_Particle0_Particle4");
+  auto* fpXiMomCorr = (TH2F*)tmpFolder->FindObject("MomentumResolution_Particle0_Particle4");
+  fpXiMomCorr->SetTitle(";k*_{gen}(p#Xi^{-}); k*_{rec}(p#Xi^{-})");
+  fpXiMomCorr->GetXaxis()->SetRangeUser(0, 1);
+  fpXiMomCorr->GetYaxis()->SetRangeUser(0, 1);
+  SetStyleHistoMany(fpXiMomCorr);
+  fpXiMomCorr->Draw("colz");
+
+
+
   f->Print("ANplot/MomCorrMatrix.pdf");
 
 }
