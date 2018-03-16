@@ -1567,7 +1567,7 @@ int systematics(const char* file,const char *output="systematics_output")
   graphError_Ratio_pp->Draw("ape");
   graphError_Ratio_pp->SetMarkerStyle(20);
   graphError_Ratio_pp->GetXaxis()->SetRangeUser(0,0.16);
-  graphError_Ratio_pp->GetYaxis()->SetRangeUser(0,0.05);
+  graphError_Ratio_pp->GetYaxis()->SetRangeUser(0,0.015);
   graphError_Ratio_pp->GetYaxis()->SetTitleOffset(1.1);
   CanSysErrorPlotting->cd(5);
   StyleGraph(graphError_Ratio_pL);
@@ -1575,7 +1575,7 @@ int systematics(const char* file,const char *output="systematics_output")
   graphError_Ratio_pL->Draw("ape");
   graphError_Ratio_pL->SetMarkerStyle(20);
   graphError_Ratio_pL->GetXaxis()->SetRangeUser(0,0.5);
-  graphError_Ratio_pL->GetYaxis()->SetRangeUser(0,0.02);
+  graphError_Ratio_pL->GetYaxis()->SetRangeUser(0,0.015);
   graphError_Ratio_pL->GetYaxis()->SetTitleOffset(1.1);
   CanSysErrorPlotting->cd(6);
   StyleGraph(graphError_Ratio_LL);
@@ -1583,7 +1583,7 @@ int systematics(const char* file,const char *output="systematics_output")
   graphError_Ratio_LL->Draw("ape");
   graphError_Ratio_LL->SetMarkerStyle(20);
   graphError_Ratio_LL->GetXaxis()->SetRangeUser(0,0.5);
-  graphError_Ratio_LL->GetYaxis()->SetRangeUser(0,0.05);
+  graphError_Ratio_LL->GetYaxis()->SetRangeUser(0,0.015);
   graphError_Ratio_LL->GetYaxis()->SetTitleOffset(1.1);
   if(rebinPP == 1 && rebinLP == 1 && rebinLL == 1) CanSysErrorPlotting->Print("CF_sys.pdf");
   else CanSysErrorPlotting->Print(Form("CF_sys_%i_%i_%i.pdf", rebinPP, rebinLP, rebinLL));
