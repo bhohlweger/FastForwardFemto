@@ -220,7 +220,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
 
   bool EPOS = false;
 
-  const char *folder = "MBResultsSample";
+  const char *folder = "MBResults";
 
   float r = 1.185;
   float rErr = 0.008;
@@ -256,9 +256,9 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
 
   // EXP DATA
   TFile* _file0=TFile::Open(expfile);
-  TDirectoryFile *dirResults=(TDirectoryFile*)(_file0->FindObjectAny("MBResults"));
+  TDirectoryFile *dirResults=(TDirectoryFile*)(_file0->FindObjectAny(Form("%s", folder)));
   TList *Results;
-  dirResults->GetObject("MBResults",Results);
+  dirResults->GetObject(Form("%s", folder),Results);
   TList* tmpFolder=(TList*)Results->FindObject("Particle0_Particle0");
   TH1F* histRE_relK_pp = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle0");
   TH1F* histME_relK_pp = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle0");
@@ -335,9 +335,9 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   TH1F *hist_CF_pp_ApAp_sim[3];
   TH1F *hist_CF_pXi_ApAXi_sim[3];
   if(_file0sim) {
-    TDirectoryFile *dirSimResults=(TDirectoryFile*)(_file0sim->FindObjectAny("MBResults"));
+    TDirectoryFile *dirSimResults=(TDirectoryFile*)(_file0sim->FindObjectAny(Form("%s", folder)));
     TList *SimResults;
-    dirSimResults->GetObject("MBResults",SimResults);
+    dirSimResults->GetObject(Form("%s", folder),SimResults);
     tmpFolder=(TList*)SimResults->FindObject("Particle0_Particle0");
     TH1F* histRE_relK_ppsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle0");
     TH1F* histME_relK_ppsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle0");
