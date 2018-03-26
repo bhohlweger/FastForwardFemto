@@ -212,10 +212,15 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   const float normleft = 0.2;
   const float normright = 0.4;
 
+  // for pythia comparison
+  const float rebin = 2;
+
   const int energy = 13; // TeV
   const char *system = "pp";
 
   bool EPOS = false;
+
+  const char *folder = "MBResultsSample";
 
   float r = 1.185;
   float rErr = 0.008;
@@ -722,40 +727,84 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     Can_CF_Pythia->cd(1)->SetTopMargin(top);
     grDummy->Draw();
     grDummy->GetYaxis()->SetRangeUser(0, 4);
-    Tgraph_syserror_pp_ApAp->SetFillColorAlpha(kBlack, 0.4);
-    Tgraph_syserror_pp_ApAp->Draw("2 same");
-    hist_CF_pp_ApAp_exp[2]->Draw("pe same");
+    hist_CF_pp_ApAp_sim[2]->Rebin(rebin);
+    hist_CF_pp_ApAp_sim[2]->Scale(1/rebin);
     hist_CF_pp_ApAp_sim[2]->Draw("pe same");
+    auto *hist_pp_exp = (TH1F*)hist_CF_pp_ApAp_exp[2]->Clone("pp");
+    hist_pp_exp->Rebin(rebin);
+    hist_pp_exp->Scale(1/rebin);
+    hist_pp_exp->Draw("pe same");
+    auto *legpppy = new TLegend(0.65,0.695,0.85,0.91);
+    legpppy->SetBorderSize(0);
+    legpppy->SetTextFont(42);
+    legpppy->SetTextSize(gStyle->GetTextSize()*0.75);
+    legpppy->SetHeader("pp #oplus #bar{p}#bar{p}");
+    legpppy->AddEntry(hist_pp_exp, "Data", "pe");
+    legpppy->AddEntry(hist_CF_pp_ApAp_sim[2], "Pythia 8", "pe");
+    legpppy->Draw("same");
 
     Can_CF_Pythia->cd(2);
     Can_CF_Pythia->cd(2)->SetRightMargin(right);
     Can_CF_Pythia->cd(2)->SetTopMargin(top);
     grDummy->Draw();
-    grDummy->GetYaxis()->SetRangeUser(0.8, 2.1);
-    Tgraph_syserror_pL_ApAL->SetFillColorAlpha(kBlack, 0.4);
-    Tgraph_syserror_pL_ApAL->Draw("2 same");
-    hist_CF_Lp_ALAp_exp[2]->Draw("pe same");
+    hist_CF_Lp_ALAp_sim[2]->Rebin(rebin);
+    hist_CF_Lp_ALAp_sim[2]->Scale(1/rebin);
     hist_CF_Lp_ALAp_sim[2]->Draw("pe same");
+    auto *hist_pL_exp = (TH1F*)hist_CF_Lp_ALAp_exp[2]->Clone("pL");
+    hist_pL_exp->Rebin(rebin);
+    hist_pL_exp->Scale(1/rebin);
+    hist_pL_exp->Draw("pe same");
+    auto *legLppy = new TLegend(0.65,0.695,0.85,0.91);
+    legLppy->SetBorderSize(0);
+    legLppy->SetTextFont(42);
+    legLppy->SetTextSize(gStyle->GetTextSize()*0.75);
+    legLppy->SetHeader("p#Lambda #oplus #bar{p}#bar{#Lambda}");
+    legLppy->AddEntry(hist_pL_exp, "Data", "pe");
+    legLppy->AddEntry(hist_CF_Lp_ALAp_sim[2], "Pythia 8", "pe");
+    legLppy->Draw("same");
+
 
     Can_CF_Pythia->cd(3);
     Can_CF_Pythia->cd(3)->SetRightMargin(right);
     Can_CF_Pythia->cd(3)->SetTopMargin(top);
     grDummy->Draw();
     grDummy->GetYaxis()->SetRangeUser(0.25, 3);
-    Tgraph_syserror_LL_ALAL->SetFillColorAlpha(kBlack, 0.4);
-    Tgraph_syserror_LL_ALAL->Draw("2 same");
-    hist_CF_LL_ALAL_exp[2]->Draw("pe same");
+    hist_CF_LL_ALAL_sim[2]->Rebin(rebin);
+    hist_CF_LL_ALAL_sim[2]->Scale(1/rebin);
     hist_CF_LL_ALAL_sim[2]->Draw("pe same");
+    auto *hist_LL_exp = (TH1F*)hist_CF_LL_ALAL_exp[2]->Clone("LL");
+    hist_LL_exp->Rebin(rebin);
+    hist_LL_exp->Scale(1/rebin);
+    hist_LL_exp->Draw("pe same");
+    auto *legLLpy = new TLegend(0.65,0.695,0.85,0.91);
+    legLLpy->SetBorderSize(0);
+    legLLpy->SetTextFont(42);
+    legLLpy->SetTextSize(gStyle->GetTextSize()*0.75);
+    legLLpy->SetHeader("#Lambda#Lambda #oplus #bar{#Lambda}#bar{#Lambda}");
+    legLLpy->AddEntry(hist_LL_exp, "Data", "pe");
+    legLLpy->AddEntry(hist_CF_LL_ALAL_sim[2], "Pythia 8", "pe");
+    legLLpy->Draw("same");
 
     Can_CF_Pythia->cd(4);
     Can_CF_Pythia->cd(4)->SetRightMargin(right);
     Can_CF_Pythia->cd(4)->SetTopMargin(top);
-    grDummy->Draw();
     grDummy->GetYaxis()->SetRangeUser(0.25, 3);
-    Tgraph_syserror_pXi_ApAXi->SetFillColorAlpha(kBlack, 0.4);
-    Tgraph_syserror_pXi_ApAXi->Draw("2 same");
-    hist_CF_pXi_ApAXi_exp[2]->Draw("pe same");
+    grDummy->Draw();
+    hist_CF_pXi_ApAXi_sim[2]->Rebin(rebin);
+    hist_CF_pXi_ApAXi_sim[2]->Scale(1/rebin);
     hist_CF_pXi_ApAXi_sim[2]->Draw("pe same");
+    auto *hist_pXi_exp = (TH1F*)hist_CF_pXi_ApAXi_exp[2]->Clone("pXi");
+    hist_pXi_exp->Rebin(rebin);
+    hist_pXi_exp->Scale(1/rebin);
+    hist_pXi_exp->Draw("pe same");
+    auto *legpXipy = new TLegend(0.65,0.695,0.85,0.91);
+    legpXipy->SetBorderSize(0);
+    legpXipy->SetTextFont(42);
+    legpXipy->SetTextSize(gStyle->GetTextSize()*0.75);
+    legpXipy->SetHeader("p#Xi^{-} #oplus #bar{p}#Xi^{+}");
+    legpXipy->AddEntry(hist_pXi_exp, "Data", "pe");
+    legpXipy->AddEntry(hist_CF_pXi_ApAXi_sim[2], "Pythia 8", "pe");
+    legpXipy->Draw("same");
 
     Can_CF_Pythia->Print("ANplot/CF_pythia.pdf");
   }
