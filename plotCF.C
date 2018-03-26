@@ -83,14 +83,19 @@ void SetStyleHisto(TH1 *histo, int marker, int color)
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-TH1F* Calculate_CF(TH1F* histRE_relK,TH1F* histME_relK, TString CFname,Double_t normleft,Double_t normright)
+TH1F* Calculate_CF(TH1F* histRE_relK,TH1F* histME_relK, TString CFname,Double_t normleft,Double_t normright, const char* folder, float spinningDepth)
 {
   histRE_relK->Sumw2();
   histME_relK->Sumw2();
-  Double_t norm_relK = histRE_relK->Integral(histRE_relK->FindBin(normleft),histRE_relK->FindBin(normright)) / histME_relK->Integral(histME_relK->FindBin(normleft),histME_relK->FindBin(normright));
-
   TH1F* Hist_CF = (TH1F*)histRE_relK->Clone(CFname.Data());
-  Hist_CF->Divide(histRE_relK,histME_relK,1,norm_relK);
+  if(strcmp(folder, "") == 0) {
+    Double_t norm_relK = histRE_relK->Integral(histRE_relK->FindBin(normleft),histRE_relK->FindBin(normright)) / histME_relK->Integral(histME_relK->FindBin(normleft),histME_relK->FindBin(normright));
+    Hist_CF->Divide(histRE_relK,histME_relK,1,norm_relK);
+  }
+  else {
+    histME_relK->Scale(1.f/spinningDepth);
+    Hist_CF->Divide(histRE_relK,histME_relK);
+  }
 
   return Hist_CF;
 }
@@ -211,6 +216,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   // Mixed event normalisation
   const float normleft = 0.2;
   const float normright = 0.4;
+  const float spinningDepth = 10.f;
 
   // for pythia comparison
   const float rebin = 2;
@@ -220,7 +226,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
 
   bool EPOS = false;
 
-  const char *folder = "MBResults";
+  const char *prefix = "MB";
+  const char *addon = "";
 
   float r = 1.185;
   float rErr = 0.008;
@@ -256,9 +263,9 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
 
   // EXP DATA
   TFile* _file0=TFile::Open(expfile);
-  TDirectoryFile *dirResults=(TDirectoryFile*)(_file0->FindObjectAny(Form("%s", folder)));
+  TDirectoryFile *dirResults=(TDirectoryFile*)(_file0->FindObjectAny(Form("%sResults%s", prefix, addon)));
   TList *Results;
-  dirResults->GetObject(Form("%s", folder),Results);
+  dirResults->GetObject(Form("%sResults%s", prefix, addon),Results);
   TList* tmpFolder=(TList*)Results->FindObject("Particle0_Particle0");
   TH1F* histRE_relK_pp = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle0");
   TH1F* histME_relK_pp = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle0");
@@ -288,17 +295,17 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   TH1F *hist_CF_pp_ApAp_exp[3];
   TH1F *hist_CF_pXi_ApAXi_exp[3];
 
-  hist_CF_Lp_ALAp_exp[0] = Calculate_CF(histRE_relK_Lp,histME_relK_Lp,"hist_CF_Lp_exp",normleft,normright);
-  hist_CF_Lp_ALAp_exp[1] = Calculate_CF(histRE_relK_ALAp,histME_relK_ALAp,"hist_CF_ALAp_exp",normleft,normright);
+  hist_CF_Lp_ALAp_exp[0] = Calculate_CF(histRE_relK_Lp,histME_relK_Lp,"hist_CF_Lp_exp",normleft,normright, addon, spinningDepth);
+  hist_CF_Lp_ALAp_exp[1] = Calculate_CF(histRE_relK_ALAp,histME_relK_ALAp,"hist_CF_ALAp_exp",normleft,normright, addon, spinningDepth);
   hist_CF_Lp_ALAp_exp[2] = add_CF(hist_CF_Lp_ALAp_exp[0],hist_CF_Lp_ALAp_exp[1],"hist_CF_Lp_ALAp_exp_sum");
-  hist_CF_LL_ALAL_exp[0] = Calculate_CF(histRE_relK_LL,histME_relK_LL,"hist_CF_LL_exp",normleft,normright);
-  hist_CF_LL_ALAL_exp[1] = Calculate_CF(histRE_relK_ALAL,histME_relK_ALAL,"hist_CF_LL_exp",normleft,normright);
+  hist_CF_LL_ALAL_exp[0] = Calculate_CF(histRE_relK_LL,histME_relK_LL,"hist_CF_LL_exp",normleft,normright, addon, spinningDepth);
+  hist_CF_LL_ALAL_exp[1] = Calculate_CF(histRE_relK_ALAL,histME_relK_ALAL,"hist_CF_LL_exp",normleft,normright, addon, spinningDepth);
   hist_CF_LL_ALAL_exp[2] = add_CF(hist_CF_LL_ALAL_exp[0],hist_CF_LL_ALAL_exp[1],"hist_CF_LL_ALAL_exp_sum");
-  hist_CF_pp_ApAp_exp[0] = Calculate_CF(histRE_relK_pp,histME_relK_pp,"hist_CF_pp",normleft,normright);
-  hist_CF_pp_ApAp_exp[1] = Calculate_CF(histRE_relK_ApAp,histME_relK_ApAp,"hist_CF_ApAp",normleft,normright);
+  hist_CF_pp_ApAp_exp[0] = Calculate_CF(histRE_relK_pp,histME_relK_pp,"hist_CF_pp",normleft,normright, addon, spinningDepth);
+  hist_CF_pp_ApAp_exp[1] = Calculate_CF(histRE_relK_ApAp,histME_relK_ApAp,"hist_CF_ApAp",normleft,normright, addon, spinningDepth);
   hist_CF_pp_ApAp_exp[2] = add_CF(hist_CF_pp_ApAp_exp[0],hist_CF_pp_ApAp_exp[1],"hist_CF_pp_ApAp_exp_sum");
-  hist_CF_pXi_ApAXi_exp[0] = Calculate_CF(histRE_relK_Xip,histME_relK_Xip,"hist_CF_pXi",normleft,normright);
-  hist_CF_pXi_ApAXi_exp[1] = Calculate_CF(histRE_relK_AXiAp,histME_relK_AXiAp,"hist_CF_ApAXi",normleft,normright);
+  hist_CF_pXi_ApAXi_exp[0] = Calculate_CF(histRE_relK_Xip,histME_relK_Xip,"hist_CF_pXi",normleft,normright, addon, spinningDepth);
+  hist_CF_pXi_ApAXi_exp[1] = Calculate_CF(histRE_relK_AXiAp,histME_relK_AXiAp,"hist_CF_ApAXi",normleft,normright, addon, spinningDepth);
   hist_CF_pXi_ApAXi_exp[2] = add_CF(hist_CF_pXi_ApAXi_exp[0],hist_CF_pXi_ApAXi_exp[1],"hist_CF_pXi_ApAXi_exp_sum");
 
   SetStyleHisto(hist_CF_pp_ApAp_exp[0], 1,1);
@@ -335,9 +342,9 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   TH1F *hist_CF_pp_ApAp_sim[3];
   TH1F *hist_CF_pXi_ApAXi_sim[3];
   if(_file0sim) {
-    TDirectoryFile *dirSimResults=(TDirectoryFile*)(_file0sim->FindObjectAny(Form("%s", folder)));
+    TDirectoryFile *dirSimResults=(TDirectoryFile*)(_file0sim->FindObjectAny(Form("%sResults%s", prefix, addon)));
     TList *SimResults;
-    dirSimResults->GetObject(Form("%s", folder),SimResults);
+    dirSimResults->GetObject(Form("%sResults%s", prefix, addon),SimResults);
     tmpFolder=(TList*)SimResults->FindObject("Particle0_Particle0");
     TH1F* histRE_relK_ppsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle0");
     TH1F* histME_relK_ppsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle0");
@@ -363,17 +370,17 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     TH1F* histRE_relK_AXiApsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle5");
     TH1F* histME_relK_AXiApsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle5");
 
-    hist_CF_Lp_ALAp_sim[0] = Calculate_CF(histRE_relK_Lpsim,histME_relK_Lpsim,"hist_CF_Lp_sim",normleft,normright);
-    hist_CF_Lp_ALAp_sim[1] = Calculate_CF(histRE_relK_ALApsim,histME_relK_ALApsim,"hist_CF_ALAp_sim",normleft,normright);
+    hist_CF_Lp_ALAp_sim[0] = Calculate_CF(histRE_relK_Lpsim,histME_relK_Lpsim,"hist_CF_Lp_sim",normleft,normright, addon, spinningDepth);
+    hist_CF_Lp_ALAp_sim[1] = Calculate_CF(histRE_relK_ALApsim,histME_relK_ALApsim,"hist_CF_ALAp_sim",normleft,normright, addon, spinningDepth);
     hist_CF_Lp_ALAp_sim[2] = add_CF(hist_CF_Lp_ALAp_sim[0],hist_CF_Lp_ALAp_sim[1],"hist_CF_Lp_ALAp_sim_sum");
-    hist_CF_LL_ALAL_sim[0] = Calculate_CF(histRE_relK_LLsim,histME_relK_LLsim,"hist_CF_LL_sim",normleft,normright);
-    hist_CF_LL_ALAL_sim[1] = Calculate_CF(histRE_relK_ALALsim,histME_relK_ALALsim,"hist_CF_LL_sim",normleft,normright);
+    hist_CF_LL_ALAL_sim[0] = Calculate_CF(histRE_relK_LLsim,histME_relK_LLsim,"hist_CF_LL_sim",normleft,normright, addon, spinningDepth);
+    hist_CF_LL_ALAL_sim[1] = Calculate_CF(histRE_relK_ALALsim,histME_relK_ALALsim,"hist_CF_LL_sim",normleft,normright, addon, spinningDepth);
     hist_CF_LL_ALAL_sim[2] = add_CF(hist_CF_LL_ALAL_sim[0],hist_CF_LL_ALAL_sim[1],"hist_CF_LL_ALAL_sim_sum");
-    hist_CF_pp_ApAp_sim[0] = Calculate_CF(histRE_relK_ppsim,histME_relK_ppsim,"hist_CF_ppsim",normleft,normright);
-    hist_CF_pp_ApAp_sim[1] = Calculate_CF(histRE_relK_ApApsim,histME_relK_ApApsim,"hist_CF_ApApsim",normleft,normright);
+    hist_CF_pp_ApAp_sim[0] = Calculate_CF(histRE_relK_ppsim,histME_relK_ppsim,"hist_CF_ppsim",normleft,normright, addon, spinningDepth);
+    hist_CF_pp_ApAp_sim[1] = Calculate_CF(histRE_relK_ApApsim,histME_relK_ApApsim,"hist_CF_ApApsim",normleft,normright, addon, spinningDepth);
     hist_CF_pp_ApAp_sim[2] = add_CF(hist_CF_pp_ApAp_sim[0],hist_CF_pp_ApAp_sim[1],"hist_CF_pp_ApAp_sim_sum");
-    hist_CF_pXi_ApAXi_sim[0] = Calculate_CF(histRE_relK_Xipsim,histME_relK_Xipsim,"hist_CF_pXisim",normleft,normright);
-    hist_CF_pXi_ApAXi_sim[1] = Calculate_CF(histRE_relK_AXiApsim,histME_relK_AXiApsim,"hist_CF_ApAXisim",normleft,normright);
+    hist_CF_pXi_ApAXi_sim[0] = Calculate_CF(histRE_relK_Xipsim,histME_relK_Xipsim,"hist_CF_pXisim",normleft,normright, addon, spinningDepth);
+    hist_CF_pXi_ApAXi_sim[1] = Calculate_CF(histRE_relK_AXiApsim,histME_relK_AXiApsim,"hist_CF_ApAXisim",normleft,normright, addon, spinningDepth);
     hist_CF_pXi_ApAXi_sim[2] = add_CF(hist_CF_pXi_ApAXi_sim[0],hist_CF_pXi_ApAXi_sim[1],"hist_CF_pXi_ApAXi_sim_sum");
     SetStyleHisto(hist_CF_pp_ApAp_sim[2], 1,2);
     SetStyleHisto(hist_CF_Lp_ALAp_sim[2], 1,2);
