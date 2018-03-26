@@ -264,9 +264,40 @@ void testPileUp(const char *expfile = "~/Downloads/AnalysisResults.root", int fo
   TH1F* histRE_relK_AXiAp = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle5");
   TH1F* histME_relK_AXiAp = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle5");
 
-  TDirectoryFile *dirv0Cuts=(TDirectoryFile*)(file->FindObjectAny(Form("_PileUp%i_MBv0Cuts", folder));
+  const float marginLambda = 0.004;
+  const float massLambda = 1.115;
+
+  TDirectoryFile *dirv0Cuts=(TDirectoryFile*)(_file0->FindObjectAny(Form("_PileUp%i_MBv0Cuts", folder)));
+  TList *tmp=dirv0Cuts->GetListOfKeys();
+  TString name=tmp->At(0)->GetName();
+  TList *v0CutList;
+  dirv0Cuts->GetObject(name,v0CutList);
   TList *v0Cuts = (TList*)v0CutList->FindObject("v0Cuts");
-  TH1F *InvMassPt= (TH1F*)((TH2F*)v0Cuts->FindObject("InvMassPt"))->ProjectionY();
+  TH1F *InvMassPtLambda= (TH1F*)((TH2F*)v0Cuts->FindObject("InvMassPt"))->ProjectionY();
+  SetStyleHisto(InvMassPtLambda, 0,1);
+  float lambdaSignalAll, lambdaSignalAllErr, lambdaBackgroundAll, lambdaBackgroundAllErr;
+  FitLambda(InvMassPtLambda, lambdaSignalAll, lambdaSignalAllErr, lambdaBackgroundAll, lambdaBackgroundAllErr, massLambda-marginLambda, massLambda+marginLambda);
+  const int LambdaSignal = lambdaSignalAll;
+  const int LambdaBackground = lambdaBackgroundAll;
+  const float LambdaPurity = lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f;
+
+  std::cout << "Lambda \n";
+  std::cout << "Signal " << lambdaSignalAll << " Background " << lambdaBackgroundAll << " S/B " << lambdaSignalAll/lambdaBackgroundAll << " Purity " << lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f << "\n";
+
+  TDirectoryFile *dirAv0Cuts=(TDirectoryFile*)(_file0->FindObjectAny(Form("_PileUp%i_MBAntiv0Cuts", folder)));
+  tmp=dirAv0Cuts->GetListOfKeys();
+  name=tmp->At(0)->GetName();
+  TList *Av0CutList;
+  dirAv0Cuts->GetObject(name,Av0CutList);
+  TList *Av0Cuts = (TList*)Av0CutList->FindObject("v0Cuts");
+  TH1F *InvMassPtAntiLambda= (TH1F*)((TH2F*)Av0Cuts->FindObject("InvMassPt"))->ProjectionY();
+  SetStyleHisto(InvMassPtAntiLambda, 0,1);
+  FitLambda(InvMassPtAntiLambda, lambdaSignalAll, lambdaSignalAllErr, lambdaBackgroundAll, lambdaBackgroundAllErr, massLambda-marginLambda, massLambda+marginLambda);
+  std::cout << "Anti-Lambda \n";
+  std::cout << "Signal " << lambdaSignalAll << " Background " << lambdaBackgroundAll << " S/B " << lambdaSignalAll/lambdaBackgroundAll << " Purity " << lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f << "\n";
+  const int AntiLambdaSignal = lambdaSignalAll;
+  const int AntiLambdaBackground = lambdaBackgroundAll;
+  const float AntiLambdaPurity = lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f;
 
   TH1F *hist_CF_Lp_ALAp_exp[3];
   TH1F *hist_CF_LL_ALAL_exp[3];
@@ -385,6 +416,7 @@ void testPileUp(const char *expfile = "~/Downloads/AnalysisResults.root", int fo
   pXiRatio->SetMarkerStyle(fMarkers[2]);
   pXiRatio->Draw("pe");
   line->Draw("same");
+  Can_CF->Print(Form("PileUp/CF_pp-apap_%i.pdf", folder));
 
   TCanvas *Can_CF_comb = new TCanvas("Can_CF_comb","Can_CF_comb",0,0,1000,550);
   Can_CF_comb->Divide(4,1);
@@ -419,10 +451,26 @@ void testPileUp(const char *expfile = "~/Downloads/AnalysisResults.root", int fo
   hist_CF_pXi_ApAXi_exp[2]->GetXaxis()->SetRangeUser(0, 0.4);
   hist_CF_pXi_ApAXi_exp[2]->GetXaxis()->SetNdivisions(505);
   hist_CF_pXi_ApAXi_exp[2]->GetYaxis()->SetRangeUser(0.5, 7.5);
+  Can_CF_comb->Print(Form("PileUp/CF_%i.pdf", folder));
 
   TCanvas *cLambda = new TCanvas("cLambda","cLambda",0,0,1000,550);
   cLambda->Divide(2,1);
   cLambda->cd(1);
-  InvMassPt->Draw();
+  InvMassPtLambda->Draw();
+  InvMassPtLambda->GetXaxis()->SetRangeUser(1.1, 1.13);
+  TLatex LambdaLabel;
+  LambdaLabel.SetNDC(kTRUE);
+  LambdaLabel.SetTextSize(gStyle->GetTextSize()*0.8);
+  LambdaLabel.DrawLatex(0.2, 0.8, Form("Purity: %.1f %%", LambdaPurity));
+  LambdaLabel.DrawLatex(0.2, 0.75, Form("Signal: %.2f #times 10^{6}", float(LambdaSignal)/1000000.f));
+  LambdaLabel.DrawLatex(0.2, 0.7, Form("Background: %.2f #times 10^{6}",float(LambdaBackground)/1000000.f));
+  cLambda->cd(2);
+  InvMassPtAntiLambda->Draw();
+  InvMassPtAntiLambda->GetXaxis()->SetRangeUser(1.1, 1.13);
+  LambdaLabel.DrawLatex(0.2, 0.8, Form("Purity: %.1f %%", AntiLambdaPurity));
+  LambdaLabel.DrawLatex(0.2, 0.75, Form("Signal: %.2f #times 10^{6}", float(AntiLambdaSignal)/1000000.f));
+  LambdaLabel.DrawLatex(0.2, 0.7, Form("Background: %.2f #times 10^{6}",float(AntiLambdaBackground)/1000000.f));
+  cLambda->Print(Form("PileUp/Lambda_%i.pdf", folder));
+
 
 }

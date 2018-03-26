@@ -1307,8 +1307,11 @@ int templateFitter(const char* file, const char* file2) {
     // between 0 and 1
     // fit->Constrain(2,0.,1.);               // constrain fraction 2 to be
     // between 0 and 1
+    if(ptbin == 3)  fit->Constrain(0,0.,1.);
+    if(ptbin == 7)  fit->Constrain(0,0.,1.);
+    if(ptbin == 8)  fit->Constrain(0,0.,10.);
     if(ptbin == 13)  fit->Constrain(0,0.,1.);
-    if(ptbin == 15)  fit->Constrain(0,0.,1.);
+//    if(ptbin == 15)  fit->Constrain(0,0.,1.);
     if(ptbin == 18)  fit->Constrain(0,0.,10.);
     fit->SetRangeX(hist_proton_DCAxy_projection_all_exp[ptbin]->FindBin(-2.4),
                    hist_proton_DCAxy_projection_all_exp[ptbin]->FindBin(
