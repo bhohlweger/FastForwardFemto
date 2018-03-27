@@ -228,6 +228,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
 
   const char *prefix = "MB";
   const char *addon = "";
+  const char *addonSim = addon;
 
   float r = 1.185;
   float rErr = 0.008;
@@ -342,9 +343,9 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   TH1F *hist_CF_pp_ApAp_sim[3];
   TH1F *hist_CF_pXi_ApAXi_sim[3];
   if(_file0sim) {
-    TDirectoryFile *dirSimResults=(TDirectoryFile*)(_file0sim->FindObjectAny(Form("%sResults%s", prefix, addon)));
+    TDirectoryFile *dirSimResults=(TDirectoryFile*)(_file0sim->FindObjectAny(Form("%sResults%s", prefix, addonSim)));
     TList *SimResults;
-    dirSimResults->GetObject(Form("%sResults%s", prefix, addon),SimResults);
+    dirSimResults->GetObject(Form("%sResults%s", prefix, addonSim),SimResults);
     tmpFolder=(TList*)SimResults->FindObject("Particle0_Particle0");
     TH1F* histRE_relK_ppsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle0");
     TH1F* histME_relK_ppsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle0");
@@ -370,17 +371,17 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     TH1F* histRE_relK_AXiApsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle5");
     TH1F* histME_relK_AXiApsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle5");
 
-    hist_CF_Lp_ALAp_sim[0] = Calculate_CF(histRE_relK_Lpsim,histME_relK_Lpsim,"hist_CF_Lp_sim",normleft,normright, addon, spinningDepth);
-    hist_CF_Lp_ALAp_sim[1] = Calculate_CF(histRE_relK_ALApsim,histME_relK_ALApsim,"hist_CF_ALAp_sim",normleft,normright, addon, spinningDepth);
+    hist_CF_Lp_ALAp_sim[0] = Calculate_CF(histRE_relK_Lpsim,histME_relK_Lpsim,"hist_CF_Lp_sim",normleft,normright, addonSim, spinningDepth);
+    hist_CF_Lp_ALAp_sim[1] = Calculate_CF(histRE_relK_ALApsim,histME_relK_ALApsim,"hist_CF_ALAp_sim",normleft,normright, addonSim, spinningDepth);
     hist_CF_Lp_ALAp_sim[2] = add_CF(hist_CF_Lp_ALAp_sim[0],hist_CF_Lp_ALAp_sim[1],"hist_CF_Lp_ALAp_sim_sum");
-    hist_CF_LL_ALAL_sim[0] = Calculate_CF(histRE_relK_LLsim,histME_relK_LLsim,"hist_CF_LL_sim",normleft,normright, addon, spinningDepth);
-    hist_CF_LL_ALAL_sim[1] = Calculate_CF(histRE_relK_ALALsim,histME_relK_ALALsim,"hist_CF_LL_sim",normleft,normright, addon, spinningDepth);
+    hist_CF_LL_ALAL_sim[0] = Calculate_CF(histRE_relK_LLsim,histME_relK_LLsim,"hist_CF_LL_sim",normleft,normright, addonSim, spinningDepth);
+    hist_CF_LL_ALAL_sim[1] = Calculate_CF(histRE_relK_ALALsim,histME_relK_ALALsim,"hist_CF_LL_sim",normleft,normright, addonSim, spinningDepth);
     hist_CF_LL_ALAL_sim[2] = add_CF(hist_CF_LL_ALAL_sim[0],hist_CF_LL_ALAL_sim[1],"hist_CF_LL_ALAL_sim_sum");
-    hist_CF_pp_ApAp_sim[0] = Calculate_CF(histRE_relK_ppsim,histME_relK_ppsim,"hist_CF_ppsim",normleft,normright, addon, spinningDepth);
-    hist_CF_pp_ApAp_sim[1] = Calculate_CF(histRE_relK_ApApsim,histME_relK_ApApsim,"hist_CF_ApApsim",normleft,normright, addon, spinningDepth);
+    hist_CF_pp_ApAp_sim[0] = Calculate_CF(histRE_relK_ppsim,histME_relK_ppsim,"hist_CF_ppsim",normleft,normright, addonSim, spinningDepth);
+    hist_CF_pp_ApAp_sim[1] = Calculate_CF(histRE_relK_ApApsim,histME_relK_ApApsim,"hist_CF_ApApsim",normleft,normright, addonSim, spinningDepth);
     hist_CF_pp_ApAp_sim[2] = add_CF(hist_CF_pp_ApAp_sim[0],hist_CF_pp_ApAp_sim[1],"hist_CF_pp_ApAp_sim_sum");
-    hist_CF_pXi_ApAXi_sim[0] = Calculate_CF(histRE_relK_Xipsim,histME_relK_Xipsim,"hist_CF_pXisim",normleft,normright, addon, spinningDepth);
-    hist_CF_pXi_ApAXi_sim[1] = Calculate_CF(histRE_relK_AXiApsim,histME_relK_AXiApsim,"hist_CF_ApAXisim",normleft,normright, addon, spinningDepth);
+    hist_CF_pXi_ApAXi_sim[0] = Calculate_CF(histRE_relK_Xipsim,histME_relK_Xipsim,"hist_CF_pXisim",normleft,normright, addonSim, spinningDepth);
+    hist_CF_pXi_ApAXi_sim[1] = Calculate_CF(histRE_relK_AXiApsim,histME_relK_AXiApsim,"hist_CF_ApAXisim",normleft,normright, addonSim, spinningDepth);
     hist_CF_pXi_ApAXi_sim[2] = add_CF(hist_CF_pXi_ApAXi_sim[0],hist_CF_pXi_ApAXi_sim[1],"hist_CF_pXi_ApAXi_sim_sum");
     SetStyleHisto(hist_CF_pp_ApAp_sim[2], 1,2);
     SetStyleHisto(hist_CF_Lp_ALAp_sim[2], 1,2);
@@ -727,6 +728,9 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   if(_file0sim) {
     auto* grDummy = new TH1F("hDummy", "; k* (GeV/#it{c}); #it{C}(k*)", 100, 0,2);
 
+    TString data = "Data";
+    TString sim = "Pythia 8";
+
     TCanvas *Can_CF_Pythia= new TCanvas("Can_CF_Pythia","Can_CF_Pythia",0,0,1000,1100);
     Can_CF_Pythia->Divide(2,2);
     Can_CF_Pythia->cd(1);
@@ -746,8 +750,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     legpppy->SetTextFont(42);
     legpppy->SetTextSize(gStyle->GetTextSize()*0.75);
     legpppy->SetHeader("pp #oplus #bar{p}#bar{p}");
-    legpppy->AddEntry(hist_pp_exp, "Data", "pe");
-    legpppy->AddEntry(hist_CF_pp_ApAp_sim[2], "Pythia 8", "pe");
+    legpppy->AddEntry(hist_pp_exp, data, "pe");
+    legpppy->AddEntry(hist_CF_pp_ApAp_sim[2], sim, "pe");
     legpppy->Draw("same");
 
     Can_CF_Pythia->cd(2);
@@ -766,8 +770,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     legLppy->SetTextFont(42);
     legLppy->SetTextSize(gStyle->GetTextSize()*0.75);
     legLppy->SetHeader("p#Lambda #oplus #bar{p}#bar{#Lambda}");
-    legLppy->AddEntry(hist_pL_exp, "Data", "pe");
-    legLppy->AddEntry(hist_CF_Lp_ALAp_sim[2], "Pythia 8", "pe");
+    legLppy->AddEntry(hist_pL_exp, data, "pe");
+    legLppy->AddEntry(hist_CF_Lp_ALAp_sim[2], sim, "pe");
     legLppy->Draw("same");
 
 
@@ -788,8 +792,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     legLLpy->SetTextFont(42);
     legLLpy->SetTextSize(gStyle->GetTextSize()*0.75);
     legLLpy->SetHeader("#Lambda#Lambda #oplus #bar{#Lambda}#bar{#Lambda}");
-    legLLpy->AddEntry(hist_LL_exp, "Data", "pe");
-    legLLpy->AddEntry(hist_CF_LL_ALAL_sim[2], "Pythia 8", "pe");
+    legLLpy->AddEntry(hist_LL_exp, data, "pe");
+    legLLpy->AddEntry(hist_CF_LL_ALAL_sim[2], sim, "pe");
     legLLpy->Draw("same");
 
     Can_CF_Pythia->cd(4);
@@ -809,8 +813,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     legpXipy->SetTextFont(42);
     legpXipy->SetTextSize(gStyle->GetTextSize()*0.75);
     legpXipy->SetHeader("p#Xi^{-} #oplus #bar{p}#Xi^{+}");
-    legpXipy->AddEntry(hist_pXi_exp, "Data", "pe");
-    legpXipy->AddEntry(hist_CF_pXi_ApAXi_sim[2], "Pythia 8", "pe");
+    legpXipy->AddEntry(hist_pXi_exp, data, "pe");
+    legpXipy->AddEntry(hist_CF_pXi_ApAXi_sim[2], sim, "pe");
     legpXipy->Draw("same");
 
     Can_CF_Pythia->Print("ANplot/CF_pythia.pdf");
