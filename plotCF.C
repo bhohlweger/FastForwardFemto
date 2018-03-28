@@ -227,8 +227,12 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   bool EPOS = false;
 
   const char *prefix = "MB";
+  const char *prefixSim = prefix;
   const char *addon = "";
   const char *addonSim = addon;
+
+  TString data = "Data";
+  TString sim = "Pythia 8";
 
   float r = 1.185;
   float rErr = 0.008;
@@ -343,9 +347,9 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   TH1F *hist_CF_pp_ApAp_sim[3];
   TH1F *hist_CF_pXi_ApAXi_sim[3];
   if(_file0sim) {
-    TDirectoryFile *dirSimResults=(TDirectoryFile*)(_file0sim->FindObjectAny(Form("%sResults%s", prefix, addonSim)));
+    TDirectoryFile *dirSimResults=(TDirectoryFile*)(_file0sim->FindObjectAny(Form("%sResults%s", prefixSim, addonSim)));
     TList *SimResults;
-    dirSimResults->GetObject(Form("%sResults%s", prefix, addonSim),SimResults);
+    dirSimResults->GetObject(Form("%sResults%s", prefixSim, addonSim),SimResults);
     tmpFolder=(TList*)SimResults->FindObject("Particle0_Particle0");
     TH1F* histRE_relK_ppsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle0");
     TH1F* histME_relK_ppsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle0");
@@ -545,7 +549,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   hist_CF_pXi_ApAXi_exp[0]->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
   hist_CF_pXi_ApAXi_exp[0]->GetXaxis()->SetRangeUser(0, 0.4);
   hist_CF_pXi_ApAXi_exp[0]->GetXaxis()->SetNdivisions(505);
-  hist_CF_pXi_ApAXi_exp[0]->GetYaxis()->SetRangeUser(0.5, 7.5);
+  hist_CF_pXi_ApAXi_exp[0]->GetYaxis()->SetRangeUser(0.25, 3);
   Can_CF->cd(5);
   Can_CF->cd(5)->SetRightMargin(right);
   Can_CF->cd(5)->SetTopMargin(top);
@@ -700,7 +704,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Tgraph_syserror_pXi_ApAXi->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
   Tgraph_syserror_pXi_ApAXi->GetXaxis()->SetRangeUser(0, 0.2);
   Tgraph_syserror_pXi_ApAXi->GetXaxis()->SetNdivisions(505);
-  Tgraph_syserror_pXi_ApAXi->GetYaxis()->SetRangeUser(0.5, 6.);
+  Tgraph_syserror_pXi_ApAXi->GetYaxis()->SetRangeUser(0.75, 3.);
   Tgraph_syserror_pXi_ApAXi->SetFillColorAlpha(kBlack, 0.4);
   Tgraph_syserror_pXi_ApAXi->Draw("2 same");
   hist_CF_pXi_ApAXi_exp[2]->Draw("pe same");
@@ -726,18 +730,18 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
 
   // Compare to Pythia
   if(_file0sim) {
-    auto* grDummy = new TH1F("hDummy", "; k* (GeV/#it{c}); #it{C}(k*)", 100, 0,2);
-
-    TString data = "Data";
-    TString sim = "Pythia 8";
+    auto* grDummy1 = new TH1F("hDummy1", "; k* (GeV/#it{c}); #it{C}(k*)", 100, 0,2);
+    auto* grDummy2 = new TH1F("hDummy2", "; k* (GeV/#it{c}); #it{C}(k*)", 100, 0,2);
+    auto* grDummy3 = new TH1F("hDummy3", "; k* (GeV/#it{c}); #it{C}(k*)", 100, 0,2);
+    auto* grDummy4 = new TH1F("hDummy4", "; k* (GeV/#it{c}); #it{C}(k*)", 100, 0,2);
 
     TCanvas *Can_CF_Pythia= new TCanvas("Can_CF_Pythia","Can_CF_Pythia",0,0,1000,1100);
     Can_CF_Pythia->Divide(2,2);
     Can_CF_Pythia->cd(1);
     Can_CF_Pythia->cd(1)->SetRightMargin(right);
     Can_CF_Pythia->cd(1)->SetTopMargin(top);
-    grDummy->Draw();
-    grDummy->GetYaxis()->SetRangeUser(0, 4);
+    grDummy1->Draw();
+    grDummy1->GetYaxis()->SetRangeUser(0, 4);
     hist_CF_pp_ApAp_sim[2]->Rebin(rebin);
     hist_CF_pp_ApAp_sim[2]->Scale(1/rebin);
     hist_CF_pp_ApAp_sim[2]->Draw("pe same");
@@ -757,7 +761,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     Can_CF_Pythia->cd(2);
     Can_CF_Pythia->cd(2)->SetRightMargin(right);
     Can_CF_Pythia->cd(2)->SetTopMargin(top);
-    grDummy->Draw();
+    grDummy2->Draw();
+    grDummy2->GetYaxis()->SetRangeUser(0.25, 3);
     hist_CF_Lp_ALAp_sim[2]->Rebin(rebin);
     hist_CF_Lp_ALAp_sim[2]->Scale(1/rebin);
     hist_CF_Lp_ALAp_sim[2]->Draw("pe same");
@@ -778,8 +783,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     Can_CF_Pythia->cd(3);
     Can_CF_Pythia->cd(3)->SetRightMargin(right);
     Can_CF_Pythia->cd(3)->SetTopMargin(top);
-    grDummy->Draw();
-    grDummy->GetYaxis()->SetRangeUser(0.25, 3);
+    grDummy3->Draw();
+    grDummy3->GetYaxis()->SetRangeUser(0.25, 3);
     hist_CF_LL_ALAL_sim[2]->Rebin(rebin);
     hist_CF_LL_ALAL_sim[2]->Scale(1/rebin);
     hist_CF_LL_ALAL_sim[2]->Draw("pe same");
@@ -799,8 +804,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     Can_CF_Pythia->cd(4);
     Can_CF_Pythia->cd(4)->SetRightMargin(right);
     Can_CF_Pythia->cd(4)->SetTopMargin(top);
-    grDummy->GetYaxis()->SetRangeUser(0.25, 3);
-    grDummy->Draw();
+    grDummy4->GetYaxis()->SetRangeUser(0.25, 3);
+    grDummy4->Draw();
     hist_CF_pXi_ApAXi_sim[2]->Rebin(rebin);
     hist_CF_pXi_ApAXi_sim[2]->Scale(1/rebin);
     hist_CF_pXi_ApAXi_sim[2]->Draw("pe same");
@@ -930,7 +935,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Tgraph_syserror_pXi_ApAXi->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
   Tgraph_syserror_pXi_ApAXi->GetXaxis()->SetRangeUser(0, 0.2);
   Tgraph_syserror_pXi_ApAXi->GetXaxis()->SetNdivisions(505);
-  Tgraph_syserror_pXi_ApAXi->GetYaxis()->SetRangeUser(0.5, 6.);
+  Tgraph_syserror_pXi_ApAXi->GetYaxis()->SetRangeUser(0.75, 3.);
   Tgraph_syserror_pXi_ApAXi->SetFillColorAlpha(kBlack, 0.4);
   Tgraph_syserror_pXi_ApAXi->Draw("2 same");
   hist_CF_pXi_ApAXi_exp[2]->Draw("pe same");
@@ -954,4 +959,10 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   else text.DrawLatex(0.55, 0.775, Form("#it{N}_{R} = %.3f #pm %.3f ^{+%.3f}_{-%.3f}", r, rErr, rSystErrUp, rSystErrDown));
   if(EPOS) Can_CF_pXi->Print("ANplot/CF_pXi_EPOS_prelim.pdf");
   else Can_CF_pXi->Print("ANplot/CF_pXi_Gauss_prelim.pdf");
+
+  auto *outfile = new TFile("CFout.root", "RECREATE");
+  hist_CF_pp_ApAp_exp[2]->Write("pp");
+  hist_CF_Lp_ALAp_exp[2]->Write("pL");
+  hist_CF_LL_ALAL_exp[2]->Write("LL");
+  hist_CF_pXi_ApAXi_exp[2]->Write("pXi");  
 }
