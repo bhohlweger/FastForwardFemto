@@ -209,6 +209,89 @@ void FitLambda(TH1F* histo, float &signal, float &signalErr, float &background, 
   delete fSignalSingleGauss;
 }
 
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// second order polynomial + double gaus to Xi peak
+void FitXi(TH1F* histo, float &signal, float
+               &signalErr, float &background, float &backgroundErr, float lowerBound,
+               float upperBound)
+{
+  // Fit Background with second order polynomial, excluding Mlambda +/- 10 MeV
+  TF1 *fBackground = new TF1("fBackground", [&](double *x, double *p) {
+    if (x[0] > 1.31 && x[0] < 1.335) {TF1::RejectPoint(); return
+        (double)0; } return p[0] + p[1]*x[0] + p[2]*x[0]*x[0]; }, 1.29, 1.35, 3);
+  TFitResultPtr backgroundR = histo->Fit("fBackground", "SRQ0", "",1.295,1.349);
+
+  // parse then to proper TF1
+  TF1 *fBackground2 = new TF1("fBackground2","pol2", 0, 1.4);
+  fBackground2->SetParameter(0, fBackground->GetParameter(0));
+  fBackground2->SetParameter(1, fBackground->GetParameter(1));
+  fBackground2->SetParameter(2, fBackground->GetParameter(2));
+
+  // remove background from signal
+  TH1F *signalOnly = getSignalHisto(fBackground2, histo, 1.3, 1.34,
+                                    Form("%s_signal_only", histo->GetName()));
+
+  // fit signal only
+  TF1 *fSignalSingleGauss = new TF1("fSignalSingleGauss", "gaus(0)",1.31,1.34);
+  //  signalOnly->DrawCopy();
+  signalOnly->Fit("fSignalSingleGauss", "Q");
+  TF1 *fSignalGauss = new TF1("fSignalGauss", "gaus(0) + gaus(3)", 1.3,
+                              1.4);
+  fSignalGauss->SetParameter(0, 0.75 * histo->GetMaximum());
+  fSignalGauss->SetParameter(1, fSignalSingleGauss->GetParameter(1));
+  fSignalGauss->SetParameter(2, 2.f*fSignalSingleGauss->GetParameter(2));
+  fSignalGauss->SetParLimits(2, 0.5*fSignalSingleGauss->GetParameter(2),1e2*2.f*fSignalSingleGauss->GetParameter(2));
+  fSignalGauss->SetParameter(3, 0.2 * histo->GetMaximum());
+  fSignalGauss->SetParameter(4, fSignalSingleGauss->GetParameter(1));
+  fSignalGauss->SetParLimits(4,
+                             fSignalSingleGauss->GetParameter(1)-fSignalSingleGauss->GetParameter(2),
+                             fSignalSingleGauss->GetParameter(1)+fSignalSingleGauss->GetParameter(2));
+  fSignalGauss->SetParameter(5, 0.5*fSignalSingleGauss->GetParameter(2));
+  fSignalGauss->SetParLimits(5, 0.5*fSignalSingleGauss->GetParameter(2),1e2*2.f*fSignalSingleGauss->GetParameter(2));
+  TFitResultPtr r = signalOnly->Fit("fSignalGauss", "SRQ0", "", 1.29,
+                                    1.38);
+
+  // Extract signal as integral
+  signal = fSignalGauss->Integral(lowerBound, upperBound)
+                /double(histo->GetBinWidth(1));
+  signalErr = fSignalGauss->IntegralError(lowerBound, upperBound,
+                                          r->GetParams(), r->GetCovarianceMatrix().GetMatrixArray())
+                /double(histo->GetBinWidth(1));
+
+  TF1 *fLambda = new TF1("fLambda", "fBackground2 + fSignalGauss", 1.25,
+                         1.4);
+  fLambda->SetNpx(1000);
+  fLambda->SetParameter(3, 0.75 * histo->GetMaximum());
+  fLambda->SetParameter(4, fSignalGauss->GetParameter((1)));
+  fLambda->SetParameter(5, fSignalGauss->GetParameter((2)));
+  fLambda->SetParameter(6, 0.2 * histo->GetMaximum());
+  fLambda->SetParameter(7, fSignalGauss->GetParameter((4)));
+  fLambda->SetParameter(8, fSignalGauss->GetParameter((5)));
+  fLambda->SetLineColor(fColors[1]);
+  histo->Fit("fLambda", "SRQ", "", 1.28, 1.4);
+
+  TF1 *fLambda_background = new TF1("fLambda_background", "pol2(0)",
+                                    1.28, 1.45);
+  fLambda_background->SetParameter(0, fLambda->GetParameter(0));
+  fLambda_background->SetParameter(1, fLambda->GetParameter(1));
+  fLambda_background->SetParameter(2, fLambda->GetParameter(2));
+  fLambda_background->SetLineStyle(3);
+  fLambda_background->SetLineColor(fColors[1]);
+
+  background = fLambda_background->Integral(lowerBound, upperBound)
+                /double(histo->GetBinWidth(1));
+  backgroundErr = fLambda_background->IntegralError(lowerBound,
+                                                    upperBound, backgroundR->GetParams(),
+                                                    backgroundR->GetCovarianceMatrix().GetMatrixArray())
+                /double(histo->GetBinWidth(1));
+
+  histo->GetListOfFunctions()->Add(fLambda_background);
+
+  delete signalOnly;
+  delete fSignalGauss;
+  delete fSignalSingleGauss;
+}
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // a and c are the weighting entities, i.e. wMean = (weightA*A + weightB*d) / (a+weightB)
 float weightedMean(float weightA, float A, float weightB, float B)
@@ -224,7 +307,7 @@ float weightedMeanError(float weightA, float A, float weightB, float B, float we
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void testPileUp(const char *expfile = "~/Downloads/AnalysisResults.root", int folder = 0) {
+void testPileUp(const char *expfile = "~/Downloads/AnalysisResults.root", const char* prefix ="MB", const char* folder = "0") {
 
   SetStyle();
 
@@ -236,9 +319,9 @@ void testPileUp(const char *expfile = "~/Downloads/AnalysisResults.root", int fo
   const float right = 0.025;
   const float top = 0.025;
 
-  TDirectoryFile *dirResults=(TDirectoryFile*)(_file0->FindObjectAny(Form("_PileUp%i_MBResults", folder)));
+  TDirectoryFile *dirResults=(TDirectoryFile*)(_file0->FindObjectAny(Form("%sResults%s", prefix, folder)));
   TList *Results;
-  dirResults->GetObject(Form("_PileUp%i_MBResults", folder),Results);
+  dirResults->GetObject(Form("%sResults%s", prefix, folder), Results);
   TList* tmpFolder=(TList*)Results->FindObject("Particle0_Particle0");
   TH1F* histRE_relK_pp = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle0");
   TH1F* histME_relK_pp = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle0");
@@ -267,12 +350,13 @@ void testPileUp(const char *expfile = "~/Downloads/AnalysisResults.root", int fo
   const float marginLambda = 0.004;
   const float massLambda = 1.115;
 
-  TDirectoryFile *dirv0Cuts=(TDirectoryFile*)(_file0->FindObjectAny(Form("_PileUp%i_MBv0Cuts", folder)));
+  TDirectoryFile *dirv0Cuts=(TDirectoryFile*)(_file0->FindObjectAny(Form("%sv0Cuts%s", prefix, folder)));
   TList *tmp=dirv0Cuts->GetListOfKeys();
   TString name=tmp->At(0)->GetName();
   TList *v0CutList;
   dirv0Cuts->GetObject(name,v0CutList);
-  TList *v0Cuts = (TList*)v0CutList->FindObject("v0Cuts");
+  TList *v0Cuts = (TList*)v0CutList->FindObject("MinimalBooking");
+  if(!v0Cuts) v0Cuts = (TList*)v0CutList->FindObject("v0Cuts");
   TH1F *InvMassPtLambda= (TH1F*)((TH2F*)v0Cuts->FindObject("InvMassPt"))->ProjectionY();
   SetStyleHisto(InvMassPtLambda, 0,1);
   float lambdaSignalAll, lambdaSignalAllErr, lambdaBackgroundAll, lambdaBackgroundAllErr;
@@ -284,12 +368,13 @@ void testPileUp(const char *expfile = "~/Downloads/AnalysisResults.root", int fo
   std::cout << "Lambda \n";
   std::cout << "Signal " << lambdaSignalAll << " Background " << lambdaBackgroundAll << " S/B " << lambdaSignalAll/lambdaBackgroundAll << " Purity " << lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f << "\n";
 
-  TDirectoryFile *dirAv0Cuts=(TDirectoryFile*)(_file0->FindObjectAny(Form("_PileUp%i_MBAntiv0Cuts", folder)));
+  TDirectoryFile *dirAv0Cuts=(TDirectoryFile*)(_file0->FindObjectAny(Form("%sAntiv0Cuts%s", prefix, folder)));
   tmp=dirAv0Cuts->GetListOfKeys();
   name=tmp->At(0)->GetName();
   TList *Av0CutList;
   dirAv0Cuts->GetObject(name,Av0CutList);
-  TList *Av0Cuts = (TList*)Av0CutList->FindObject("v0Cuts");
+  TList *Av0Cuts = (TList*)Av0CutList->FindObject("MinimalBooking");
+  if(!Av0Cuts) Av0Cuts = (TList*)Av0CutList->FindObject("v0Cuts");
   TH1F *InvMassPtAntiLambda= (TH1F*)((TH2F*)Av0Cuts->FindObject("InvMassPt"))->ProjectionY();
   SetStyleHisto(InvMassPtAntiLambda, 0,1);
   FitLambda(InvMassPtAntiLambda, lambdaSignalAll, lambdaSignalAllErr, lambdaBackgroundAll, lambdaBackgroundAllErr, massLambda-marginLambda, massLambda+marginLambda);
@@ -298,6 +383,53 @@ void testPileUp(const char *expfile = "~/Downloads/AnalysisResults.root", int fo
   const int AntiLambdaSignal = lambdaSignalAll;
   const int AntiLambdaBackground = lambdaBackgroundAll;
   const float AntiLambdaPurity = lambdaSignalAll/(lambdaSignalAll+lambdaBackgroundAll)*100.f;
+
+  TH2F* xiMass2D;
+  TH1F* xiMass;
+  TH2F* AntiXiMass2D;
+  TH1F* AntiXiMass;
+  TDirectoryFile *dirExp=(TDirectoryFile*)(_file0->FindObjectAny(Form("%sCascadeCuts%s", prefix, folder)));
+  tmp=dirExp->GetListOfKeys();
+  name=tmp->At(0)->GetName();
+  TList *output;
+  dirExp->GetObject(name,output);
+  TList *Cascade=(TList*)output->FindObject("MinimalBooking");
+  if(!Cascade) Cascade=(TList*)output->FindObject("Cascade");
+  xiMass2D=(TH2F*)Cascade->FindObject("InvMassXiPt");
+  xiMass=(TH1F*)xiMass2D->ProjectionY("InvMassXi");
+  SetStyleHisto(xiMass,0,1);
+  xiMass->GetXaxis()->SetRangeUser(1.285,1.345);
+  xiMass->GetXaxis()->SetTitle("M_{#pi#Lambda} (GeV/#it{c}^{2})");
+
+  float signalXi, signalErrXi, backgroundXi, backgroundErrXi;
+  float lowerBound=1.322-0.005;
+  float upperBound=1.322+0.005;
+  FitXi(xiMass, signalXi, signalErrXi, backgroundXi, backgroundErrXi, lowerBound,upperBound);
+  std::cout << "Xi\n";
+  std::cout << "Signal " << signalXi << " Background " << backgroundXi << " S/B " << signalXi/backgroundXi << " Purity " << signalXi/(signalXi+backgroundXi)*100.f << "\n";
+  const int XiSignal = signalXi;
+  const int XiBackground = backgroundXi;
+  const float XiPurity = signalXi/(signalXi+backgroundXi)*100.f;
+
+  dirExp=(TDirectoryFile*)(_file0->FindObjectAny(Form("%sAntiCascadeCuts%s", prefix, folder)));
+  tmp=dirExp->GetListOfKeys();
+  name=tmp->At(0)->GetName();
+  dirExp->GetObject(name,output);
+  TList *AntiCascade=(TList*)output->FindObject("MinimalBooking");
+  if(!AntiCascade) AntiCascade=(TList*)output->FindObject("Cascade");
+  AntiXiMass2D=(TH2F*)AntiCascade->FindObject("InvMassXiPt");
+  AntiXiMass=(TH1F*)AntiXiMass2D->ProjectionY("InvMassXi");
+  SetStyleHisto(AntiXiMass,0,1);
+  AntiXiMass->GetXaxis()->SetRangeUser(1.285,1.345);
+  AntiXiMass->GetXaxis()->SetTitle("M_{#pi#Lambda} (GeV/#it{c}^{2})");
+
+  float signalAntiXi, signalErrAntiXi, backgroundAntiXi, backgroundErrAntiXi;
+  FitXi(AntiXiMass, signalAntiXi, signalErrAntiXi, backgroundAntiXi, backgroundErrAntiXi, lowerBound,upperBound);
+  std::cout << "Anti-Xi\n";
+  std::cout << "Signal " << signalAntiXi << " Background " << backgroundAntiXi << " S/B " << signalAntiXi/backgroundAntiXi << " Purity " << signalAntiXi/(signalAntiXi+backgroundAntiXi)*100.f << "\n";
+  const int AntiXiSignal = signalAntiXi;
+  const int AntiXiBackground = backgroundAntiXi;
+  const float AntiXiPurity = signalAntiXi/(signalAntiXi+backgroundAntiXi)*100.f;
 
   TH1F *hist_CF_Lp_ALAp_exp[3];
   TH1F *hist_CF_LL_ALAL_exp[3];
@@ -416,7 +548,7 @@ void testPileUp(const char *expfile = "~/Downloads/AnalysisResults.root", int fo
   pXiRatio->SetMarkerStyle(fMarkers[2]);
   pXiRatio->Draw("pe");
   line->Draw("same");
-  Can_CF->Print(Form("PileUp/CF_pp-apap_%i.pdf", folder));
+  Can_CF->Print(Form("PileUp/CF_pp-apap_%s.pdf", folder));
 
   TCanvas *Can_CF_comb = new TCanvas("Can_CF_comb","Can_CF_comb",0,0,1000,550);
   Can_CF_comb->Divide(4,1);
@@ -451,7 +583,7 @@ void testPileUp(const char *expfile = "~/Downloads/AnalysisResults.root", int fo
   hist_CF_pXi_ApAXi_exp[2]->GetXaxis()->SetRangeUser(0, 0.4);
   hist_CF_pXi_ApAXi_exp[2]->GetXaxis()->SetNdivisions(505);
   hist_CF_pXi_ApAXi_exp[2]->GetYaxis()->SetRangeUser(0.5, 7.5);
-  Can_CF_comb->Print(Form("PileUp/CF_%i.pdf", folder));
+  Can_CF_comb->Print(Form("PileUp/CF_%s.pdf", folder));
 
   TCanvas *cLambda = new TCanvas("cLambda","cLambda",0,0,1000,550);
   cLambda->Divide(2,1);
@@ -470,7 +602,24 @@ void testPileUp(const char *expfile = "~/Downloads/AnalysisResults.root", int fo
   LambdaLabel.DrawLatex(0.2, 0.8, Form("Purity: %.1f %%", AntiLambdaPurity));
   LambdaLabel.DrawLatex(0.2, 0.75, Form("Signal: %.2f #times 10^{6}", float(AntiLambdaSignal)/1000000.f));
   LambdaLabel.DrawLatex(0.2, 0.7, Form("Background: %.2f #times 10^{6}",float(AntiLambdaBackground)/1000000.f));
-  cLambda->Print(Form("PileUp/Lambda_%i.pdf", folder));
+  cLambda->Print(Form("PileUp/Lambda_%s.pdf", folder));
 
 
+  TCanvas *Xi= new TCanvas("cXi","cXi",0,0,1000,550);
+  Xi->Divide(2,1);
+  Xi->cd(1);
+  xiMass->Draw();
+  LambdaLabel.SetNDC(kTRUE);
+  LambdaLabel.SetTextSize(gStyle->GetTextSize()*0.8);
+  LambdaLabel.DrawLatex(0.2, 0.8, Form("Purity: %.1f %%", XiPurity));
+  LambdaLabel.DrawLatex(0.2, 0.75, Form("Signal: %.2f #times 10^{3}", float(XiSignal)/1000.f));
+  LambdaLabel.DrawLatex(0.2, 0.7, Form("Background: %.2f #times 10^{3}",float(XiBackground)/1000.f));
+  Xi->cd(2);
+  AntiXiMass->Draw();
+  LambdaLabel.SetNDC(kTRUE);
+  LambdaLabel.SetTextSize(gStyle->GetTextSize()*0.8);
+  LambdaLabel.DrawLatex(0.2, 0.8, Form("Purity: %.1f %%", AntiXiPurity));
+  LambdaLabel.DrawLatex(0.2, 0.75, Form("Signal: %.2f #times 10^{3}", float(AntiXiSignal)/1000.f));
+  LambdaLabel.DrawLatex(0.2, 0.7, Form("Background: %.2f #times 10^{3}",float(AntiXiBackground)/1000.f));
+  Xi->Print(Form("PileUp/Xi_%s.pdf", folder));
 }
