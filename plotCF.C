@@ -224,7 +224,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   const int energy = 13; // TeV
   const char *system = "pp";
 
-  bool EPOS = true;
+  bool EPOS = false;
 
   const char *prefix = "MB";
   const char *prefixSim = prefix;
@@ -234,26 +234,26 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   TString data = "Data";
   TString sim = "Pythia 8";
 
-  float r = 1.189; //1.185;
+  float r = 1.188;
   float rErr = 0.009;
-  float rSystErrUp = 0.017;
+  float rSystErrUp = 0.016;
   float rSystErrDown = 0.009;
 
   float ppBL0 = 0.924;
   float ppBL1 = 0.386;
-  float pLBL0 = 0.899;
-  float pLBL1 = 0.353;
-  float LLBL0 = 0.893;
-  float LLBL1 = 0.321;
-  float pXiBL0 = 0.917;
-  float pXiBL1 = 0.461;
+  float pLBL0 = 0.898;
+  float pLBL1 = 0.355;
+  float LLBL0 = 0.894;
+  float LLBL1 = 0.320;
+  float pXiBL0 = 0.919;
+  float pXiBL1 = 0.453;
 
   //  EPOS
   if(EPOS) {
-    r = 1.473;
+    r = 1.476;
     rErr = 0.014;
-    rSystErrUp = 0.014;
-    rSystErrDown = 0.008;
+    rSystErrUp = 0.007;
+    rSystErrDown = 0.014;
 
     ppBL0 = 0.931;
     ppBL1 = 0.401;
@@ -424,12 +424,16 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     grppLow = (TGraph*)systFit->Get("ppGraphLowerLim");
     grppUp = (TGraph*)systFit->Get("ppGraphUpperLim");
 
-    grpLDefaultNLO = (TGraph*)systFit->Get("pLamGraphDefault");
-    grpLLowNLO = (TGraph*)systFit->Get("pLamGraphLowerLim");
-    grpLUpNLO = (TGraph*)systFit->Get("pLamGraphUpperLim");
-    grpLDefaultLO = (TGraph*)systFit->Get("pLamGraphDefault");
-    grpLLowLO = (TGraph*)systFit->Get("pLamGraphLowerLim");
-    grpLUpLO = (TGraph*)systFit->Get("pLamGraphUpperLim");
+    const char* nlostring = (EPOS) ? "" : "_NLO";
+    const char* lostring = (EPOS) ? "_LO" : "";
+    const char* prefix = (EPOS) ? "" : "Copy_";
+    const char* prefixLO = (!EPOS) ? "" : "Copy_";
+    grpLDefaultNLO = (TGraph*)systFit->Get(Form("pLamGraphDefault%s", nlostring));
+    grpLLowNLO = (TGraph*)systFit->Get(Form("%spLamGraphLowerLim%s", prefix, nlostring));
+    grpLUpNLO = (TGraph*)systFit->Get(Form("pLamGraphUpperLim%s", nlostring));
+    grpLDefaultLO = (TGraph*)systFit->Get(Form("pLamGraphDefault%s", lostring));
+    grpLLowLO = (TGraph*)systFit->Get(Form("%spLamGraphLowerLim%s", prefixLO, lostring));
+    grpLUpLO = (TGraph*)systFit->Get(Form("pLamGraphUpperLim%s", lostring));
 
     grLLDefault = (TGraph*)systFit->Get("LamLamGraphDefault");
     grLLLow = (TGraph*)systFit->Get("LamLamGraphLowerLim");
@@ -438,11 +442,9 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     grpXiLower = (TGraph*)systFit->Get("pXimGraphLowerLim");
     grpXiUpper = (TGraph*)systFit->Get("pXimGraphUpperLim");
 
-    TFile *fitCoulomb = TFile::Open("SYSTEMATICS_COULOMB_ONLY_Global_Radius_EPOS.root");
-    grpXiDefaultCoulomb = (TGraph*)fitCoulomb->Get("pXimGraphDefault");
-    grpXiDefaultCoulomb->SetNameTitle("coul", "coul2");
-//    grpXiLowerCoulomb = (TGraph*)fitCoulomb->Get("pXimGraphLowerLim");
-//    grpXiUpperCoulomb = (TGraph*)fitCoulomb->Get("pXimGraphUpperLim");
+    grpXiDefaultCoulomb = (TGraph*)systFit->Get("pXimGraphDefault_COULOMB");
+    grpXiLowerCoulomb = (TGraph*)systFit->Get("pXimGraphLowerLim_COULOMB");
+    grpXiUpperCoulomb = (TGraph*)systFit->Get("pXimGraphUpperLim_COULOMB");
 
     grFemtopp = FemtoModelFitBands(grppDefault, grppLow, grppUp);
     grFemtopp->SetFillColor(fColors[2]);
@@ -459,17 +461,10 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     grFemtopXi = FemtoModelFitBands(grpXiDefault, grpXiLower, grpXiUpper);
     grFemtopXi->SetFillColor(fColors[6]);
     grFemtopXi->SetLineColor(fColors[6]);
-    grFemtopXiCoulomb = (TGraphErrors*)convertInGev(grpXiDefaultCoulomb); //FemtoModelFitBands(grpXiDefaultCoulomb, grpXiLowerCoulomb, grpXiUpperCoulomb);
-    grFemtopXiCoulomb->SetName("coul");
-    grFemtopXiCoulomb->SetTitle("coul");
+    grFemtopXiCoulomb = FemtoModelFitBands(grpXiDefaultCoulomb, grpXiLowerCoulomb, grpXiUpperCoulomb);
     grFemtopXiCoulomb->SetFillColor(fColors[7]);
     grFemtopXiCoulomb->SetLineColor(fColors[7]);
-    grFemtopXiCoulomb->SetLineWidth(3);
   }
-  grFemtopp->SetLineWidth(3);
-  grFemtopLNLO->SetLineWidth(3);
-  grFemtopLLO->SetLineWidth(3);
-  grFemtoLL->SetLineWidth(3);
 
   TGraph *grFakeSyst = new TGraph();
   grFakeSyst->SetFillColor(fFillColors[0]);
@@ -647,19 +642,21 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Tgraph_syserror_pL_ApAL->GetXaxis()->SetRangeUser(0, 0.2);
   Tgraph_syserror_pL_ApAL->GetXaxis()->SetNdivisions(505);
   Tgraph_syserror_pL_ApAL->GetYaxis()->SetRangeUser(0.8, 2.);
-  if(EPOS && grFemtopLNLO) grFemtopLNLO->Draw("l3 same");
+  if(grFemtopLNLO) grFemtopLNLO->Draw("l3 same");
   if(!EPOS && grFemtopLLO) grFemtopLLO->Draw("l3 same");
   Tgraph_syserror_pL_ApAL->SetFillColorAlpha(kBlack, 0.4);
   Tgraph_syserror_pL_ApAL->Draw("2 same");
   hist_CF_Lp_ALAp_exp[2]->Draw("pe same");
-  TLegend *legLp = new TLegend(0.385,0.595,0.75,0.81);
+  TLegend *legLp;
+  if(EPOS) legLp = new TLegend(0.385,0.595,0.75,0.81);
+  else legLp     = new TLegend(0.385,0.545,0.75,0.81);
   legLp->SetBorderSize(0);
   legLp->SetTextFont(42);
   legLp->SetTextSize(gStyle->GetTextSize()*0.75);
   legLp->AddEntry(hist_CF_Lp_ALAp_exp[2], "p#Lambda #oplus #bar{p}#bar{#Lambda} pairs", "pe");
   legLp->AddEntry(grFakeSyst, "Syst. uncertainties", "f");
-  if(EPOS) legLp->AddEntry(grFakePLnlo,"Femtoscopic fit (#chiEFT NLO)","l");
-  else legLp->AddEntry(grFakePLlo,"Femtoscopic fit (#chiEFT LO)","l");
+  legLp->AddEntry(grFakePLnlo,"Femtoscopic fit (#chiEFT NLO)","l");
+  if(!EPOS) legLp->AddEntry(grFakePLlo,"Femtoscopic fit (#chiEFT LO)","l");
   legLp->Draw("same");
   if(strcmp(system, "pp") == 0) BeamText.DrawLatex(0.4, 0.875, Form("ALICE %s #sqrt{#it{s}} = %i TeV", system, energy));
   else BeamText.DrawLatex(0.4, 0.875, Form("ALICE %s #sqrt{#it{s}_{NN}} = %i TeV", system, energy));
@@ -668,7 +665,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   TLatex ref;
   ref.SetTextSize(gStyle->GetTextSize()*0.6);
   ref.SetNDC(kTRUE);
-  ref.DrawLatex(0.48, 0.565, "Nucl. Phys. A915 (2013) 24.");
+  if(EPOS) ref.DrawLatex(0.48, 0.565, "Nucl. Phys. A915 (2013) 24.");
+  else ref.DrawLatex(0.48, 0.515, "Nucl. Phys. A915 (2013) 24.");
 
   Can_CF_fitting->cd(3);
   Can_CF_fitting->cd(3)->SetRightMargin(right);
@@ -729,7 +727,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   else BeamText.DrawLatex(0.4, 0.875, Form("ALICE %s #sqrt{#it{s}_{NN}} = %i TeV", system, energy));
   if(!EPOS) text.DrawLatex(0.4, 0.825, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
   else text.DrawLatex(0.4, 0.825, Form("#it{N}_{R} = %.3f #pm %.3f", r, rErr));
-  Can_CF_fitting->Print("ANplot/CF.pdf");
+  if(EPOS) Can_CF_fitting->Print("ANplot/CF_EPOS_prelim.pdf");
+  else Can_CF_fitting->Print("ANplot/CF_Gauss_prelim.pdf");
 
 
   // Compare to Pythia
@@ -876,26 +875,29 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Tgraph_syserror_pL_ApAL->GetXaxis()->SetRangeUser(0, 0.2);
   Tgraph_syserror_pL_ApAL->GetXaxis()->SetNdivisions(505);
   Tgraph_syserror_pL_ApAL->GetYaxis()->SetRangeUser(0.8, 2.);
-  if(EPOS && grFemtopLNLO) grFemtopLNLO->Draw("l3 same");
+  if(grFemtopLNLO) grFemtopLNLO->Draw("l3 same");
   if(!EPOS && grFemtopLLO) grFemtopLLO->Draw("l3 same");
   Tgraph_syserror_pL_ApAL->SetFillColorAlpha(kBlack, 0.4);
   Tgraph_syserror_pL_ApAL->Draw("2 same");
   hist_CF_Lp_ALAp_exp[2]->Draw("pe same");
-  TLegend *legLp2 = new TLegend(0.53,0.545,0.85,0.76);
+  TLegend *legLp2;
+  if(EPOS) legLp2 = new TLegend(0.53,0.545,0.85,0.76);
+  else legLp2 = new TLegend(0.53,0.495,0.85,0.76);
   legLp2->SetBorderSize(0);
   legLp2->SetTextFont(42);
   legLp2->SetTextSize(gStyle->GetTextSize()*0.75);
   legLp2->AddEntry(hist_CF_Lp_ALAp_exp[2], "p#Lambda #oplus #bar{p}#bar{#Lambda} pairs", "pe");
   legLp2->AddEntry(grFakeSyst, "Syst. uncertainties", "f");
-  if(EPOS) legLp2->AddEntry(grFakePLnlo,"Femtoscopic fit (#chiEFT NLO)","l");
-  else legLp2->AddEntry(grFakePLlo,"Femtoscopic fit (#chiEFT LO)","l");
+  legLp2->AddEntry(grFakePLnlo,"Femtoscopic fit (#chiEFT NLO)","l");
+  if(!EPOS) legLp2->AddEntry(grFakePLlo,"Femtoscopic fit (#chiEFT LO)","l");
   legLp2->Draw("same");
   BeamText.DrawLatex(0.55, 0.875, "ALICE Preliminary");
   if(strcmp(system, "pp") == 0) BeamText.DrawLatex(0.55, 0.825, Form("%s #sqrt{#it{s}} = %i TeV", system, energy));
   else BeamText.DrawLatex(0.55, 0.825, Form("%s #sqrt{#it{s}_{NN}} = %i TeV", system, energy));
   if(!EPOS) text.DrawLatex(0.55, 0.775, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
   else text.DrawLatex(0.55, 0.775, Form("#it{N}_{R} = %.3f #pm %.3f", r, rErr));
-  ref.DrawLatex(0.61, 0.515, "Nucl. Phys. A915 (2013) 24.");
+  if(EPOS) ref.DrawLatex(0.61, 0.515, "Nucl. Phys. A915 (2013) 24.");
+  else ref.DrawLatex(0.61, 0.465, "Nucl. Phys. A915 (2013) 24.");
   if(EPOS) Can_CF_pL->Print("ANplot/CF_pL_EPOS_prelim.pdf");
   else Can_CF_pL->Print("ANplot/CF_pL_Gauss_prelim.pdf");
 
