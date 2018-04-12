@@ -137,16 +137,15 @@ void plotLambda() {
   SetStyle();
   gStyle->SetCanvasPreferGL(1);
 
-  //  TH1D* hist_emptyhist = new TH1D("hist_emptyhist","; 1/#it{a_{0}} (fm^{-1}); #it{r_{eff}} (fm)",50,-2,5);
-    TH1D* hist_emptyhist = new TH1D("hist_emptyhist","; 1/#it{f}_{0} (fm^{-1}); #it{d}_{0} (fm)",50,-2,5);
+  TH1D* hist_emptyhist = new TH1D("hist_emptyhist","; 1/#it{f}_{0} (fm^{-1}); #it{d}_{0} (fm)",50,-2,5);
 
-  // ALICE data
-  TFile *file = TFile::Open("LamLamMap_Med.root");
-//  TH2F *sigma = (TH2F*)file->Get("hNsigmaMap");
-  TFile *file2 = TFile::Open("lamlam.root");
-  TH2F* sigma = (TH2F*)file2->Get("hNsigmaMap__1");
+  // Data
+  TFile *file2 = TFile::Open("CombinedMap.root");
+  TH2F* sigma = (TH2F*)file2->Get("hGlobNsigma");
+  TH2F* ledniSucks = (TH2F*)file2->Get("hGlobMinCk");
+
   SetStyleHisto(sigma);
-  sigma->SetMaximum(15);
+  sigma->SetMaximum(10);
   sigma->SetMinimum(0.);
   sigma->SetTitle(";;;#it{n_{#sigma}}");
   sigma->GetZaxis()->SetLabelFont(hist_emptyhist->GetXaxis()->GetLabelFont());
@@ -154,20 +153,21 @@ void plotLambda() {
   sigma->GetZaxis()->SetLabelSize(hist_emptyhist->GetXaxis()->GetLabelSize());
   sigma->GetZaxis()->SetTitleSize(hist_emptyhist->GetXaxis()->GetTitleSize());
   TH2F *sigma2 = (TH2F*)sigma->Clone();
-  TH2F *chi2 = (TH2F*)file->Get("hChi2Map");
+
   const int nContours = 4;
   double contours[nContours];
   contours[0] = 1;
   contours[1] = 3;
   contours[2] = 5;
   contours[3] = 10;
-
-  TCanvas *cChi2 = new TCanvas();
-  chi2->Draw("colz");
-
-  TCanvas *cALICE = new TCanvas("cALICE","cALICE");
-  sigma->DrawCopy("colz");
   sigma->SetContour(nContours,contours);
+
+  const int nContoursLedni = 1;
+  double contoursLedni[nContoursLedni];
+  contoursLedni[0] = 0.00000001;
+  ledniSucks->SetContour(nContoursLedni, contoursLedni);
+  ledniSucks->SetLineColor(kRed+1);
+  ledniSucks->SetLineWidth(2);
 
   // PRL C02 (2015) 022301.
   TGraphErrors *grStar = new TGraphErrors();
@@ -351,6 +351,7 @@ void plotLambda() {
   sigma->SetLineColor(kWhite);
   sigma->SetLineWidth(1);
   sigma->SetLineStyle(2);
+  ledniSucks->Draw("cont3 same");
   grStar_syst->Draw("2same");
   grStar->Draw("PZ same");
 //  grNagara->Draw("P same");
@@ -391,6 +392,7 @@ void plotLambda() {
   BeamText.SetNDC(kTRUE);
   BeamText.DrawLatex(0.6, 0.305, "ALICE Preliminary");
   BeamText.DrawLatex(0.6, 0.255, "pp #sqrt{#it{s}} = 13 TeV");
+//  BeamText.DrawLatex(0.6, 0.255, "p-Pb #sqrt{#it{s}_{NN}} = 5 TeV");
   BeamText.DrawLatex(0.6, 0.205, "#Lambda#Lambda #oplus #bar{#Lambda}#bar{#Lambda} pairs");
 
   pad22->cd();
