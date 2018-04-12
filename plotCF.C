@@ -224,7 +224,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   const int energy = 13; // TeV
   const char *system = "pp";
 
-  bool EPOS = false;
+  bool EPOS = true;
 
   const char *prefix = "MB";
   const char *prefixSim = prefix;
@@ -251,18 +251,18 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   //  EPOS
   if(EPOS) {
     r = 1.476;
-    rErr = 0.014;
+    rErr = 0.015;
     rSystErrUp = 0.007;
     rSystErrDown = 0.014;
 
     ppBL0 = 0.931;
-    ppBL1 = 0.401;
-    pLBL0 = 0.942;
-    pLBL1 = 0.309;
-    LLBL0 = 0.894;
-    LLBL1 = 0.319;
-    pXiBL0 = 0.920;
-    pXiBL1 = 0.447;
+    ppBL1 = 0.399;
+    pLBL0 = 0.938;
+    pLBL1 = 0.328;
+    LLBL0 = 0.893;
+    LLBL1 = 0.321;
+    pXiBL0 = 0.921;
+    pXiBL1 = 0.443;
   }
   SetStyle();
 
@@ -629,7 +629,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   text.SetNDC();
   text.SetTextColor(1);
   if(!EPOS) text.DrawLatex(0.5, 0.825, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
-  else text.DrawLatex(0.5, 0.825, Form("#it{N}_{R} = %.3f #pm %.3f", r, rErr));
+  else text.DrawLatex(0.5, 0.825, Form("#it{N}_{R} = %.3f #pm %.3f ^{+%.3f}_{-%.3f}", r, rErr, rSystErrUp, rSystErrDown));
 
   Can_CF_fitting->cd(2);
   Can_CF_fitting->cd(2)->SetRightMargin(right);
@@ -661,7 +661,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   if(strcmp(system, "pp") == 0) BeamText.DrawLatex(0.4, 0.875, Form("ALICE %s #sqrt{#it{s}} = %i TeV", system, energy));
   else BeamText.DrawLatex(0.4, 0.875, Form("ALICE %s #sqrt{#it{s}_{NN}} = %i TeV", system, energy));
   if(!EPOS) text.DrawLatex(0.4, 0.825, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
-  else text.DrawLatex(0.4, 0.825, Form("#it{N}_{R} = %.3f #pm %.3f", r, rErr));
+  else text.DrawLatex(0.4, 0.825, Form("#it{N}_{R} = %.3f #pm %.3f ^{+%.3f}_{-%.3f}", r, rErr, rSystErrUp, rSystErrDown));
   TLatex ref;
   ref.SetTextSize(gStyle->GetTextSize()*0.6);
   ref.SetNDC(kTRUE);
@@ -694,7 +694,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   if(strcmp(system, "pp") == 0) BeamText.DrawLatex(0.5, 0.875, Form("ALICE %s #sqrt{#it{s}} = %i TeV", system, energy));
   else BeamText.DrawLatex(0.5, 0.875, Form("ALICE %s #sqrt{#it{s}_{NN}} = %i TeV", system, energy));
   if(!EPOS) text.DrawLatex(0.5, 0.825, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
-  else text.DrawLatex(0.5, 0.825, Form("#it{N}_{R} = %.3f #pm %.3f", r, rErr));
+  else text.DrawLatex(0.5, 0.825, Form("#it{N}_{R} = %.3f #pm %.3f ^{+%.3f}_{-%.3f}", r, rErr, rSystErrUp, rSystErrDown));
 
   Can_CF_fitting->cd(4);
   Can_CF_fitting->cd(4)->SetRightMargin(right);
@@ -726,7 +726,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   if(strcmp(system, "pp") == 0) BeamText.DrawLatex(0.4, 0.875, Form("ALICE %s #sqrt{#it{s}} = %i TeV", system, energy));
   else BeamText.DrawLatex(0.4, 0.875, Form("ALICE %s #sqrt{#it{s}_{NN}} = %i TeV", system, energy));
   if(!EPOS) text.DrawLatex(0.4, 0.825, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
-  else text.DrawLatex(0.4, 0.825, Form("#it{N}_{R} = %.3f #pm %.3f", r, rErr));
+  else text.DrawLatex(0.4, 0.825, Form("#it{N}_{R} = %.3f #pm %.3f ^{+%.3f}_{-%.3f}", r, rErr, rSystErrUp, rSystErrDown));
   if(EPOS) Can_CF_fitting->Print("ANplot/CF_EPOS_prelim.pdf");
   else Can_CF_fitting->Print("ANplot/CF_Gauss_prelim.pdf");
 
@@ -861,7 +861,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   text.SetNDC();
   text.SetTextColor(1);
   if(!EPOS) text.DrawLatex(0.55, 0.775, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
-  else text.DrawLatex(0.55, 0.775, Form("#it{N}_{R} = %.3f #pm %.3f", r, rErr));
+  else text.DrawLatex(0.55, 0.775, Form("#it{N}_{R} = %.3f #pm %.3f ^{+%.3f}_{-%.3f}", r, rErr, rSystErrUp, rSystErrDown));
   if(EPOS) Can_CF_pp->Print("ANplot/CF_pp_EPOS_prelim.pdf");
   else Can_CF_pp->Print("ANplot/CF_pp_Gauss_prelim.pdf");
 
@@ -895,7 +895,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   if(strcmp(system, "pp") == 0) BeamText.DrawLatex(0.55, 0.825, Form("%s #sqrt{#it{s}} = %i TeV", system, energy));
   else BeamText.DrawLatex(0.55, 0.825, Form("%s #sqrt{#it{s}_{NN}} = %i TeV", system, energy));
   if(!EPOS) text.DrawLatex(0.55, 0.775, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
-  else text.DrawLatex(0.55, 0.775, Form("#it{N}_{R} = %.3f #pm %.3f", r, rErr));
+  else text.DrawLatex(0.55, 0.775, Form("#it{N}_{R} = %.3f #pm %.3f ^{+%.3f}_{-%.3f}", r, rErr, rSystErrUp, rSystErrDown));
   if(EPOS) ref.DrawLatex(0.61, 0.515, "Nucl. Phys. A915 (2013) 24.");
   else ref.DrawLatex(0.61, 0.465, "Nucl. Phys. A915 (2013) 24.");
   if(EPOS) Can_CF_pL->Print("ANplot/CF_pL_EPOS_prelim.pdf");
@@ -928,7 +928,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   if(strcmp(system, "pp") == 0) BeamText.DrawLatex(0.55, 0.825, Form("%s #sqrt{#it{s}} = %i TeV", system, energy));
   else BeamText.DrawLatex(0.55, 0.825, Form("%s #sqrt{#it{s}_{NN}} = %i TeV", system, energy));
   if(!EPOS) text.DrawLatex(0.55, 0.775, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
-  else text.DrawLatex(0.55, 0.775, Form("#it{N}_{R} = %.3f #pm %.3f", r, rErr));
+  else text.DrawLatex(0.55, 0.775, Form("#it{N}_{R} = %.3f #pm %.3f ^{+%.3f}_{-%.3f}", r, rErr, rSystErrUp, rSystErrDown));
   if(EPOS) Can_CF_LL->Print("ANplot/CF_LL_EPOS_prelim.pdf");
   else Can_CF_LL->Print("ANplot/CF_LL_Gauss_prelim.pdf");
 
@@ -962,7 +962,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   if(strcmp(system, "pp") == 0) BeamText.DrawLatex(0.55, 0.825, Form("%s #sqrt{#it{s}} = %i TeV", system, energy));
   else BeamText.DrawLatex(0.55, 0.825, Form("%s #sqrt{#it{s}_{NN}} = %i TeV", system, energy));
   if(!EPOS) text.DrawLatex(0.55, 0.775, Form("#it{r_{0}} = %.3f #pm %.3f ^{+%.3f}_{-%.3f} fm", r, rErr, rSystErrUp, rSystErrDown));
-  else text.DrawLatex(0.55, 0.775, Form("#it{N}_{R} = %.3f #pm %.3f", r, rErr));
+  else text.DrawLatex(0.55, 0.775, Form("#it{N}_{R} = %.3f #pm %.3f ^{+%.3f}_{-%.3f}", r, rErr, rSystErrUp, rSystErrDown));
   if(EPOS) Can_CF_pXi->Print("ANplot/CF_pXi_EPOS_prelim.pdf");
   else Can_CF_pXi->Print("ANplot/CF_pXi_Gauss_prelim.pdf");
 
