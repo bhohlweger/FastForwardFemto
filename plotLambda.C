@@ -98,13 +98,13 @@ void SetStyle(bool graypalette=false, bool title=false)
   gStyle->SetLegendFont(42);
   gStyle->SetLegendBorderSize(0);
 
-  const int NRGBs = 6;
+  const int NRGBs = 5;
   Double_t stops[NRGBs];
   for(int i=0; i<NRGBs; ++i) stops[i] = float(i)/(NRGBs-1);
 
-  Double_t red[NRGBs]   = { 1.,  29./255., 25./255., 27./255., 32./255., 24./255.};
-  Double_t green[NRGBs] = { 1., 221./255., 160./255., 113./255., 74./255., 37./255.};
-  Double_t blue[NRGBs] = {  1., 221./255., 184./255., 154./255., 129./255., 98./255.};
+  Double_t red[NRGBs]   = { 1.,  29./255., 25./255., 27./255., 32./255.};
+  Double_t green[NRGBs] = { 1., 221./255., 160./255., 113./255., 74./255.};
+  Double_t blue[NRGBs] = {  1., 221./255., 184./255., 154./255., 129./255.};
   TColor::CreateGradientColorTable(NRGBs,stops,red,green,blue,NCont);
 }
 
@@ -132,7 +132,7 @@ void SetStyleGraph(TGraph *graph, int marker, int color)
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void plotLambda() {
+void plotLambda(const int flag = 0) {
 
   SetStyle();
   gStyle->SetCanvasPreferGL(1);
@@ -141,12 +141,22 @@ void plotLambda() {
 
   // Data
   TFile *file2 = TFile::Open("CombinedMap.root");
-  TH2F* sigma = (TH2F*)file2->Get("hGlobNsigma");
-  TH2F* ledniSucks = (TH2F*)file2->Get("hGlobMinCk");
+  TH2F *sigma, *ledniSucks;
+
+  // Combined fit
+  if(flag == 0) {
+    sigma = (TH2F*)file2->Get("hGlobNsigma");
+    ledniSucks = (TH2F*)file2->Get("hGlobMinCk");
+  }
+  // pp 13 TeV
+  if(flag == 1) {
+    sigma = (TH2F*)file2->Get("hNsigma_1");
+    ledniSucks = (TH2F*)file2->Get("hMinCk_1");
+  }
 
   SetStyleHisto(sigma);
-  sigma->SetMaximum(10);
-  sigma->SetMinimum(0.);
+  sigma->SetMaximum(5);
+  sigma->SetMinimum(0.0);
   sigma->SetTitle(";;;#it{n_{#sigma}}");
   sigma->GetZaxis()->SetLabelFont(hist_emptyhist->GetXaxis()->GetLabelFont());
   sigma->GetZaxis()->SetTitleFont(hist_emptyhist->GetXaxis()->GetTitleFont());
@@ -154,12 +164,11 @@ void plotLambda() {
   sigma->GetZaxis()->SetTitleSize(hist_emptyhist->GetXaxis()->GetTitleSize());
   TH2F *sigma2 = (TH2F*)sigma->Clone();
 
-  const int nContours = 4;
+  const int nContours = 3;
   double contours[nContours];
   contours[0] = 1;
   contours[1] = 3;
   contours[2] = 5;
-  contours[3] = 10;
   sigma->SetContour(nContours,contours);
 
   const int nContoursLedni = 1;
@@ -351,7 +360,7 @@ void plotLambda() {
   sigma->SetLineColor(kWhite);
   sigma->SetLineWidth(1);
   sigma->SetLineStyle(2);
-  ledniSucks->Draw("cont3 same");
+//  ledniSucks->Draw("cont3 same");
   grStar_syst->Draw("2same");
   grStar->Draw("PZ same");
 //  grNagara->Draw("P same");
@@ -367,33 +376,51 @@ void plotLambda() {
 
   pad12->RedrawAxis();
 
-
   TLatex sigmaLabel;
   sigmaLabel.SetTextSize(gStyle->GetTextSize()*0.9);
   sigmaLabel.SetTextFont(62);
   sigmaLabel.SetTextColor(kBlack);
-  sigmaLabel.SetTextAngle(-50);
-  sigmaLabel.DrawLatex(-1.44, 3.55, "1#kern[0.3]{#sigma}");
-  sigmaLabel.SetTextAngle(-45);
-  sigmaLabel.DrawLatex(-1.25, 4.15, "3#kern[0.2]{#sigma}");
-  sigmaLabel.SetTextAngle(-42);
-  sigmaLabel.DrawLatex(-1.05, 4.7, "5#kern[0.2]{#sigma}");
-  sigmaLabel.DrawLatex(-0.75, 5.8, "10#kern[0.2]{#sigma}");
-
-  sigmaLabel.SetTextAngle(-95);
-  sigmaLabel.DrawLatex(0.8, 1.5, "1#kern[0.3]{#sigma}");
-  sigmaLabel.SetTextAngle(-75);
-  sigmaLabel.DrawLatex(0.24, 1.325, "3#kern[0.2]{#sigma}");
-  sigmaLabel.SetTextAngle(-75);
-  sigmaLabel.DrawLatex(-0., 1.5, "10#kern[0.2]{#sigma}");
-
   TLatex BeamText;
   BeamText.SetTextSize(gStyle->GetTextSize()*0.85);
   BeamText.SetNDC(kTRUE);
-  BeamText.DrawLatex(0.6, 0.305, "ALICE Preliminary");
-  BeamText.DrawLatex(0.6, 0.255, "pp #sqrt{#it{s}} = 13 TeV");
-//  BeamText.DrawLatex(0.6, 0.255, "p-Pb #sqrt{#it{s}_{NN}} = 5 TeV");
-  BeamText.DrawLatex(0.6, 0.205, "#Lambda#Lambda #oplus #bar{#Lambda}#bar{#Lambda} pairs");
+
+  if(flag == 0) {
+    sigmaLabel.SetTextAngle(32);
+    sigmaLabel.DrawLatex(1.35, 7.4, "1#kern[0.3]{#sigma}");
+    sigmaLabel.SetTextAngle(-50);
+    sigmaLabel.DrawLatex(0.7, 1.5, "3#kern[0.2]{#sigma}");
+    sigmaLabel.SetTextAngle(-55);
+    sigmaLabel.DrawLatex(0.4, 1.5, "5#kern[0.2]{#sigma}");
+
+    sigmaLabel.SetTextAngle(-35);
+    sigmaLabel.DrawLatex(-1.5, 1.2, "3#kern[0.2]{#sigma}");
+    sigmaLabel.SetTextAngle(-35);
+    sigmaLabel.DrawLatex(-1.35, 2.4, "5#kern[0.2]{#sigma}");
+
+    BeamText.SetTextSize(gStyle->GetTextSize()*0.75);
+    BeamText.DrawLatex(0.6, 0.365, "ALICE Preliminary");
+    BeamText.DrawLatex(0.6, 0.32, "pp #sqrt{#it{s}} = 7 TeV");
+    BeamText.DrawLatex(0.6, 0.275, "pp #sqrt{#it{s}} = 13 TeV");
+    BeamText.DrawLatex(0.6, 0.23, "p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
+    BeamText.DrawLatex(0.6, 0.185, "#Lambda#Lambda #oplus #bar{#Lambda}#bar{#Lambda} pairs");
+  }
+  if(flag == 1) {
+    sigmaLabel.SetTextAngle(12.5);
+    sigmaLabel.DrawLatex(1.35, 7.5, "1#kern[0.3]{#sigma}");
+    sigmaLabel.SetTextAngle(-50);
+    sigmaLabel.DrawLatex(0.7, 1.5, "3#kern[0.2]{#sigma}");
+    sigmaLabel.SetTextAngle(-65);
+    sigmaLabel.DrawLatex(0.35, 1.5, "5#kern[0.2]{#sigma}");
+
+    sigmaLabel.SetTextAngle(-35);
+    sigmaLabel.DrawLatex(-1.2, 1.5, "3#kern[0.2]{#sigma}");
+    sigmaLabel.SetTextAngle(-35);
+    sigmaLabel.DrawLatex(-1.05, 2.7, "5#kern[0.2]{#sigma}");
+
+    BeamText.DrawLatex(0.6, 0.305, "ALICE Preliminary");
+    BeamText.DrawLatex(0.6, 0.255, "pp #sqrt{#it{s}} = 13 TeV");
+    BeamText.DrawLatex(0.6, 0.205, "#Lambda#Lambda #oplus #bar{#Lambda}#bar{#Lambda} pairs");
+  }
 
   pad22->cd();
   pad22->SetTopMargin(0.025);
@@ -412,6 +439,7 @@ void plotLambda() {
   leg2->AddEntry(grfss2, "fss2", "P");
   leg2->AddEntry(grESC8, "ESC08", "P");
   leg2->Draw("same");
-  c2->SaveAs("LambdaLambda.pdf");
+  if(flag == 0) c2->SaveAs("LambdaLambda_global.pdf");
+  if(flag == 1) c2->SaveAs("LambdaLambda_13TeV.pdf");
 
 }
