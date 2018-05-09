@@ -77,6 +77,8 @@ void SetStyleHisto(TH1 *histo, int marker, int color)
   histo->GetYaxis()->SetTitleSize(0.05);
   histo->GetYaxis()->SetLabelOffset(0.01);
   histo->GetYaxis()->SetTitleOffset(1.25);
+  histo->SetMarkerSize(1.25);
+  histo->SetLineWidth(2);
   histo->SetMarkerStyle(fMarkers[marker]);
   histo->SetMarkerColor(fColors[color]);
   histo->SetLineColor(fColors[color]);
@@ -296,10 +298,10 @@ void plotMorePreliminaries(const char *expfile = "~/Results/LHC17p_fast/Analysis
   SetStyleHisto(hist_CF_Lp_ALAp_exp[1], 0,2);
   SetStyleHisto(hist_CF_LL_ALAL_exp[1], 0,2);
   SetStyleHisto(hist_CF_pXi_ApAXi_exp[1], 0,2);
-  SetStyleHisto(hist_CF_pp_ApAp_exp[2], 0,0);
-  SetStyleHisto(hist_CF_Lp_ALAp_exp[2], 0,0);
-  SetStyleHisto(hist_CF_LL_ALAL_exp[2], 0,0);
-  SetStyleHisto(hist_CF_pXi_ApAXi_exp[2], 0,0);
+  SetStyleHisto(hist_CF_pp_ApAp_exp[2], 0,2);
+  SetStyleHisto(hist_CF_Lp_ALAp_exp[2], 0,2);
+  SetStyleHisto(hist_CF_LL_ALAL_exp[2], 0,2);
+  SetStyleHisto(hist_CF_pXi_ApAXi_exp[2], 0,2);
 
   // SYSTEMATIC UNCERTAINTIES
   TString input_sys_pp = "C2totalsysPP.root";
@@ -341,23 +343,30 @@ void plotMorePreliminaries(const char *expfile = "~/Results/LHC17p_fast/Analysis
   grFemtopLNLOEPOS->SetLineColor(fColors[1]);
 
   TGraph *grFakeSyst = new TGraph();
-  grFakeSyst->SetFillColor(fFillColors[0]);
-  grFakeSyst->SetLineColor(fFillColors[0]);
+  grFakeSyst->SetFillColor(fFillColors[2]);
+  grFakeSyst->SetLineColor(fFillColors[2]);
 
   TGraph *grFakePP = new TGraph();
-  grFakePP->SetLineColor(fColors[2]);
+  grFakePP->SetLineColor(fColors[7]);
+  grFakePP->SetLineWidth(4);
   TGraph *grFakePLnlo = new TGraph();
   grFakePLnlo->SetLineColor(fColors[1]);
+  grFakePLnlo->SetLineWidth(4);
   TGraph *grFakePLlo = new TGraph();
   grFakePLlo->SetLineColor(fColors[3]);
+  grFakePLlo->SetLineWidth(4);
   TGraph *grFakeLL = new TGraph();
   grFakeLL->SetLineColor(fColors[5]);
+  grFakeLL->SetLineWidth(4);
   TGraph *grFakeLLStar = new TGraph();
   grFakeLLStar->SetLineColor(fColors[6]);
+  grFakeLLStar->SetLineWidth(4);
   TGraph *grFakepXi= new TGraph();
   grFakepXi->SetLineColor(fColors[6]);
+  grFakepXi->SetLineWidth(4);
   TGraph *grFakeXiCoulomb= new TGraph();
   grFakeXiCoulomb->SetLineColor(fColors[7]);
+  grFakeXiCoulomb->SetLineWidth(4);
 
   TGraphErrors *Tgraph_syserror_pp_ApAp = DrawSystematicError(hist_CF_pp_ApAp_exp[2], hist_sys_pp, 0.002);
   TGraphErrors *Tgraph_syserror_pL_ApAL = DrawSystematicError(hist_CF_Lp_ALAp_exp[2], hist_sys_pL, 0.01);
@@ -368,31 +377,36 @@ void plotMorePreliminaries(const char *expfile = "~/Results/LHC17p_fast/Analysis
   auto* grNSC89 = convertInGev((TGraphErrors*)morita->Get("gCkTheory_NSC89-1020"));
   grNSC89->SetFillColor(fColors[4]);
   grNSC89->SetLineColor(fColors[4]);
+  grNSC89->SetLineWidth(3);
   auto* grfss2 = convertInGev((TGraphErrors*)morita->Get("gCkTheory_fss2"));
   grfss2->SetFillColor(fColors[3]);
   grfss2->SetLineColor(fColors[3]);
+  grfss2->SetLineWidth(3);
   auto* grnd46 = convertInGev((TGraphErrors*)morita->Get("gCkTheory_ND46"));
   grnd46->SetFillColor(fColors[2]);
   grnd46->SetLineColor(fColors[2]);
+  grnd46->SetLineWidth(3);
   auto* grnsc97f = convertInGev((TGraphErrors*)morita->Get("gCkTheory_NSC97f"));
   grnsc97f->SetFillColor(fColors[5]);
   grnsc97f->SetLineColor(fColors[5]);
+  grnsc97f->SetLineWidth(3);
   auto* grNF46 = convertInGev((TGraphErrors*)morita->Get("gCkTheory_NF46"));
-  grNF46->SetFillColor(fColors[3]);
-  grNF46->SetLineColor(fColors[3]);
-  grNF46->SetLineWidth(0);
-  grNF46->SetFillStyle(3003);
+  grNF46->SetFillColor(kGreen-8);
+  grNF46->SetLineColor(kGreen-8);
+  grNF46->SetLineWidth(3);
   auto* grESC08 = convertInGev((TGraphErrors*)morita->Get("gCkTheory_ESC08"));
   grESC08->SetFillColor(fColors[4]);
   grESC08->SetLineColor(fColors[4]);
+  grNSC89->SetLineWidth(3);
   auto* grEhime = convertInGev((TGraphErrors*)morita->Get("gCkTheory_Ehime"));
-  grEhime->SetFillColor(fColors[2]);
-  grEhime->SetLineColor(fColors[2]);
-  grEhime->SetLineWidth(0);
-  grEhime->SetFillStyle(3003);
+  grEhime->SetFillColor(kBlue-1);
+  grEhime->SetLineColor(kBlue-1);
+  grEhime->SetLineWidth(3);
+//  grEhime->SetFillStyle(3003);
   auto* grFG = convertInGev((TGraphErrors*)morita->Get("gCkTheory_FG"));
   grFG->SetFillColor(fColors[6]);
   grFG->SetLineColor(fColors[6]);
+  grFG->SetLineWidth(3);
 
   // PRELIMINARY PLOTS
   TCanvas *Can_CF_pL = new TCanvas("pL","pL", 0,0,650,550);
@@ -407,10 +421,10 @@ void plotMorePreliminaries(const char *expfile = "~/Results/LHC17p_fast/Analysis
   grFemtopLLOGaus->Draw("l3 same");
   grFemtopLNLOEPOS->Draw("l3 same");
 //  if(!EPOS && grFemtopLLO) grFemtopLLO->Draw("l3 same");
-  Tgraph_syserror_pL_ApAL->SetFillColorAlpha(kBlack, 0.4);
+  Tgraph_syserror_pL_ApAL->SetFillColorAlpha(kBlue-9, 0.9);
   Tgraph_syserror_pL_ApAL->Draw("2 same");
   hist_CF_Lp_ALAp_exp[2]->Draw("pe same");
-  TLegend *legLp2 = new TLegend(0.425,0.495,0.75,0.81);
+  TLegend *legLp2 = new TLegend(0.475,0.495,0.8,0.81);
   legLp2->SetBorderSize(0);
   legLp2->SetTextFont(42);
   legLp2->SetTextSize(gStyle->GetTextSize()*0.75);
@@ -424,12 +438,12 @@ void plotMorePreliminaries(const char *expfile = "~/Results/LHC17p_fast/Analysis
   TLatex BeamText;
   BeamText.SetTextSize(gStyle->GetTextSize()*0.85);
   BeamText.SetNDC(kTRUE);
-  BeamText.DrawLatex(0.445, 0.875, "ALICE Preliminary");
-  BeamText.DrawLatex(0.445, 0.825, Form("%s #sqrt{#it{s}} = %i TeV", system, energy));
+  BeamText.DrawLatex(0.495, 0.875, "ALICE Preliminary");
+  BeamText.DrawLatex(0.495, 0.825, Form("%s #sqrt{#it{s}} = %i TeV", system, energy));
   TLatex ref;
   ref.SetTextSize(gStyle->GetTextSize()*0.6);
   ref.SetNDC(kTRUE);
-  ref.DrawLatex(0.5325, 0.465, "Nucl. Phys. A915 (2013) 24.");
+  ref.DrawLatex(0.5575, 0.465, "Nucl. Phys. A915 (2013) 24.");
   Can_CF_pL->Print("ANplot/CF_pL_Gaus-EPOS_prelim.pdf");
 
 
@@ -442,10 +456,6 @@ void plotMorePreliminaries(const char *expfile = "~/Results/LHC17p_fast/Analysis
   Tgraph_syserror_LL_ALAL->GetXaxis()->SetRangeUser(0, 0.2);
   Tgraph_syserror_LL_ALAL->GetXaxis()->SetNdivisions(505);
   Tgraph_syserror_LL_ALAL->GetYaxis()->SetRangeUser(0.4, 2.3);
-
-  Tgraph_syserror_LL_ALAL->SetFillColorAlpha(kBlack, 0.4);
-  Tgraph_syserror_LL_ALAL->Draw("2 same");
-  hist_CF_LL_ALAL_exp[2]->Draw("pe same");
 //  grNSC89->Draw("le3 same");
   grfss2->Draw("le3 same");
 //  grnd46->Draw("le3 same");
@@ -454,6 +464,9 @@ void plotMorePreliminaries(const char *expfile = "~/Results/LHC17p_fast/Analysis
   grESC08->Draw("le3 same");
   grEhime->Draw("le3 same");
   grFG->Draw("le3 same");
+  Tgraph_syserror_LL_ALAL->SetFillColorAlpha(kBlue-9, 0.9);
+  Tgraph_syserror_LL_ALAL->Draw("2 same");
+  hist_CF_LL_ALAL_exp[2]->Draw("pe same");
   TLegend *legLL2 = new TLegend(0.21,0.73,0.53,0.86);
   legLL2->SetBorderSize(0);
   legLL2->SetTextFont(42);
