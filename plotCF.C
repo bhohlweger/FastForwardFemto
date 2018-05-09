@@ -893,7 +893,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
 
 
   // PRELIMINARY PLOTS
-  gStyle->SetErrorX(0.);
+  //gStyle->SetErrorX(0.);
+  gStyle->SetErrorX(0.001);
   TCanvas *Can_CF_pp = new TCanvas("pp","pp", 0,0,650,550);
   Can_CF_pp->SetRightMargin(right);
   Can_CF_pp->SetTopMargin(top);
