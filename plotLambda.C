@@ -107,7 +107,6 @@ void SetStyle(bool graypalette=false, bool title=false)
 //  const int NRGBs = 5;
 //  Double_t stops[NRGBs];
 //  for(int i=0; i<NRGBs; ++i) stops[i] = float(i)/(NRGBs-1);
-//
 //  Double_t red[NRGBs]   = { 1.,  29./255., 25./255., 27./255., 32./255.};
 //  Double_t green[NRGBs] = { 1., 221./255., 160./255., 113./255., 74./255.};
 //  Double_t blue[NRGBs] = {  1., 221./255., 184./255., 154./255., 129./255.};
@@ -173,7 +172,7 @@ void plotLambda(const int flag = 0) {
 
   SetStyleHisto(sigma);
   sigma->SetMaximum(5);
-  sigma->SetMinimum(.0);
+  sigma->SetMinimum(1);
   sigma->SetTitle(";;;#it{n_{#sigma}}");
   sigma->GetZaxis()->SetLabelFont(hist_emptyhist->GetXaxis()->GetLabelFont());
   sigma->GetZaxis()->SetTitleFont(hist_emptyhist->GetXaxis()->GetTitleFont());
@@ -445,25 +444,22 @@ void plotLambda(const int flag = 0) {
   if(flag == 0) {
 //    sigmaLabel.SetTextAngle(32);
 //    sigmaLabel.DrawLatex(1.35, 7.4, "1#kern[0.3]{#sigma}");
-//    sigmaLabel.SetTextAngle(-50);
-//    sigmaLabel.DrawLatex(0.7, 1.5, "3#kern[0.2]{#sigma}");
-//    sigmaLabel.SetTextAngle(-55);
-//    sigmaLabel.DrawLatex(0.4, 1.5, "5#kern[0.2]{#sigma}");
-//
-//    sigmaLabel.SetTextAngle(-35);
-//    sigmaLabel.DrawLatex(-1.5, 1.2, "3#kern[0.2]{#sigma}");
-//    sigmaLabel.SetTextAngle(-35);
-//    sigmaLabel.DrawLatex(-1.35, 2.4, "5#kern[0.2]{#sigma}");
+    sigmaLabel.SetTextAngle(-50);
+    sigmaLabel.DrawLatex(0.7, 1.5, "3#kern[0.2]{#sigma}");
+    sigmaLabel.SetTextAngle(-55);
+    sigmaLabel.DrawLatex(0.4, 1.5, "5#kern[0.2]{#sigma}");
 
-    BeamText.SetTextSize(gStyle->GetTextSize()*0.67);
-    BeamText.DrawLatex(0.75, 0.92, "#Lambda#Lambda #oplus #bar{#Lambda}#bar{#Lambda} pairs");
-    BeamText.DrawLatex(0.75, 0.875, "pp #sqrt{#it{s}} = 7 TeV");
-    BeamText.DrawLatex(0.75, 0.83, "pp #sqrt{#it{s}} = 13 TeV");
-    BeamText.DrawLatex(0.75, 0.785, "p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
-    c2->cd();
-    BeamText.SetTextSize(gStyle->GetTextSize()*0.85);
-    BeamText.DrawLatex(0.8, 0.96, "ALICE Preliminary");
-    BeamText.DrawLatex(0.8, 0.90, "Exclusion");
+    sigmaLabel.SetTextAngle(-35);
+    sigmaLabel.DrawLatex(-1.5, 1.2, "3#kern[0.2]{#sigma}");
+    sigmaLabel.SetTextAngle(-35);
+    sigmaLabel.DrawLatex(-1.35, 2.4, "5#kern[0.2]{#sigma}");
+
+    BeamText.SetTextSize(gStyle->GetTextSize()*0.75);
+    BeamText.DrawLatex(0.6, 0.365, "ALICE Preliminary");
+    BeamText.DrawLatex(0.6, 0.32, "pp #sqrt{#it{s}} = 7 TeV");
+    BeamText.DrawLatex(0.6, 0.275, "pp #sqrt{#it{s}} = 13 TeV");
+    BeamText.DrawLatex(0.6, 0.23, "p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
+    BeamText.DrawLatex(0.6, 0.185, "#Lambda#Lambda #oplus #bar{#Lambda}#bar{#Lambda} pairs");
   }
   if(flag == 1) {
     sigmaLabel.SetTextAngle(12.5);
