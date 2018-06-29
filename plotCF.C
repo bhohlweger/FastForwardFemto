@@ -238,6 +238,9 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   const float normright = 0.4;
   const float spinningDepth = 10.f;
 
+  // for Data
+  const float rebinData = 2;
+
   // for pythia comparison
   const float rebin = 2;
 
@@ -300,28 +303,44 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   dirResults->GetObject(Form("%sResults%s", prefix, addon),Results);
   TList* tmpFolder=(TList*)Results->FindObject("Particle0_Particle0");
   TH1F* histRE_relK_pp = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle0");
+  histRE_relK_pp->Rebin(rebinData);
   TH1F* histME_relK_pp = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle0");
+  histME_relK_pp->Rebin(rebinData);
   tmpFolder=(TList*)Results->FindObject("Particle1_Particle1");
   TH1F* histRE_relK_ApAp = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle1");
+  histRE_relK_ApAp->Rebin(rebinData);
   TH1F* histME_relK_ApAp = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle1");
+  histME_relK_ApAp->Rebin(rebinData);
   tmpFolder=(TList*)Results->FindObject("Particle0_Particle2");
   TH1F* histRE_relK_Lp = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle2");
+  histRE_relK_Lp->Rebin(rebinData);
   TH1F* histME_relK_Lp = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle2");
+  histME_relK_Lp->Rebin(rebinData);
   tmpFolder=(TList*)Results->FindObject("Particle1_Particle3");
   TH1F* histRE_relK_ALAp = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle3");
+  histRE_relK_ALAp->Rebin(rebinData);
   TH1F* histME_relK_ALAp = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle3");
+  histME_relK_ALAp->Rebin(rebinData);
   tmpFolder=(TList*)Results->FindObject("Particle2_Particle2");
   TH1F* histRE_relK_LL = (TH1F*)tmpFolder->FindObject("SEDist_Particle2_Particle2");
+  histRE_relK_LL->Rebin(rebinData);
   TH1F* histME_relK_LL = (TH1F*)tmpFolder->FindObject("MEDist_Particle2_Particle2");
+  histME_relK_LL->Rebin(rebinData);
   tmpFolder=(TList*)Results->FindObject("Particle3_Particle3");
   TH1F* histRE_relK_ALAL = (TH1F*)tmpFolder->FindObject("SEDist_Particle3_Particle3");
+  histRE_relK_ALAL->Rebin(rebinData);
   TH1F* histME_relK_ALAL = (TH1F*)tmpFolder->FindObject("MEDist_Particle3_Particle3");
+  histME_relK_ALAL->Rebin(rebinData);
   tmpFolder=(TList*)Results->FindObject("Particle0_Particle4");
   TH1F* histRE_relK_Xip = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle4");
+  histRE_relK_Xip->Rebin(rebinData);
   TH1F* histME_relK_Xip = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle4");
+  histME_relK_Xip->Rebin(rebinData);
   tmpFolder=(TList*)Results->FindObject("Particle1_Particle5");
   TH1F* histRE_relK_AXiAp = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle5");
+  histRE_relK_AXiAp->Rebin(rebinData);
   TH1F* histME_relK_AXiAp = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle5");
+  histME_relK_AXiAp->Rebin(rebinData);
   TH1F *hist_CF_Lp_ALAp_exp[3];
   TH1F *hist_CF_LL_ALAL_exp[3];
   TH1F *hist_CF_pp_ApAp_exp[3];
