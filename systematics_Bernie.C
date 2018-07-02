@@ -1480,7 +1480,7 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
     TLatex LambdaLabel;
     LambdaLabel.SetNDC(kTRUE);
     LambdaLabel.SetTextSize(gStyle->GetTextSize()*1.2);
-    LambdaLabel.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.39,Form("Par Fit: %.2f",f1->GetParameter(0)*100));
+    LambdaLabel.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.39,Form("Avg. : %.2f %%",f1->GetParameter(0)*100));
   }
    if(rebinPP == 1) CanSysErrorBudgetPPAPAP->Print("PP_Budget.pdf");
   else CanSysErrorBudgetPPAPAP->Print(Form("PP_Budget_%i.pdf", rebinPP));
@@ -1498,7 +1498,7 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
     TLatex LambdaLabel;
     LambdaLabel.SetNDC(kTRUE);
     LambdaLabel.SetTextSize(gStyle->GetTextSize()*1.2);
-    LambdaLabel.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.39,Form("Par Fit: %.2f",f1->GetParameter(0)*100));
+    LambdaLabel.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.39,Form("Avg. : %.2f %%",f1->GetParameter(0)*100));
   }
    if(rebinLP == 1) CanSysErrorBudgetPLAPAL->Print("PL_Budget.pdf");
   else CanSysErrorBudgetPLAPAL->Print(Form("PL_Budget_%i.pdf", rebinLP));
@@ -1516,7 +1516,7 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
     TLatex LambdaLabel;
     LambdaLabel.SetNDC(kTRUE);
     LambdaLabel.SetTextSize(gStyle->GetTextSize()*1.2);
-    LambdaLabel.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.39,Form("Par Fit: %.2f",f1->GetParameter(0)*100));
+    LambdaLabel.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.39,Form("Avg. : %.2f %%",f1->GetParameter(0)*100));
   }
    if(rebinLL == 1) CanSysErrorBudgetLLALAL->Print("LL_Budget.pdf");
   else CanSysErrorBudgetLLALAL->Print(Form("LL_Budget_%i.pdf", rebinLL));
