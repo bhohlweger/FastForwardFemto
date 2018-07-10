@@ -265,7 +265,15 @@ void TrackSplitting(const char *filename,const char *prefix) {
               CFDist[iPart1][iPart2][iDaug][iRad]=(TH2F*)SEDist[iPart1][iPart2][iDaug][iRad]->Clone(CFName.Data());
               CFDist[iPart1][iPart2][iDaug][iRad]->SetTitle(CFName.Data());
               CFDist[iPart1][iPart2][iDaug][iRad]->Divide(MEDist[iPart1][iPart2][iDaug][iRad]);
-              CFDist[iPart1][iPart2][iDaug][iRad]->GetXaxis()->SetRangeUser(0,1.3);
+              CFDist[iPart1][iPart2][iDaug][iRad]->GetXaxis()->SetRangeUser(0,0.2);
+              CFDist[iPart1][iPart2][iDaug][iRad]->GetYaxis()->SetRangeUser(0,0.2);
+              CFDist[iPart1][iPart2][iDaug][iRad]->GetXaxis()->SetLabelSize(0.06);
+              CFDist[iPart1][iPart2][iDaug][iRad]->GetXaxis()->SetTitleSize(0.07);
+              CFDist[iPart1][iPart2][iDaug][iRad]->GetXaxis()->SetTitleOffset(1.1);
+//              CFDist[iPart1][iPart2][iDaug][iRad]->GetXaxis()->SetLabelOffset(1.1);
+              CFDist[iPart1][iPart2][iDaug][iRad]->GetYaxis()->SetLabelSize(0.06);
+              CFDist[iPart1][iPart2][iDaug][iRad]->GetYaxis()->SetTitleSize(0.07);
+//              CFDist[iPart1][iPart2][iDaug][iRad]->GetYaxis()->SetLabelOffset(1.1);
               if (iPart1==0&&iPart2==0&&iDaug<1) {
                 c1[iPart2][iDaug]->cd(iRad+1);
                 CFDist[iPart1][iPart2][iDaug][iRad]->DrawCopy("COLZ");

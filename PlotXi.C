@@ -149,8 +149,7 @@ void FitLambda(TH1F* histo, float &signal, float
                              fSignalSingleGauss->GetParameter(1)+fSignalSingleGauss->GetParameter(2));
   fSignalGauss->SetParameter(5, 0.5*fSignalSingleGauss->GetParameter(2));
   fSignalGauss->SetParLimits(5, 0.5*fSignalSingleGauss->GetParameter(2),1e2*2.f*fSignalSingleGauss->GetParameter(2));
-  TFitResultPtr r = signalOnly->Fit("fSignalGauss", "SRQ0", "", 1.29,
-                                    1.38);
+  TFitResultPtr r = signalOnly->Fit("fSignalGauss", "SRQ0", "", 1.29,1.38);
 
   // Extract signal as integral
   signal = fSignalGauss->Integral(lowerBound, upperBound)
@@ -235,7 +234,7 @@ void PlotXi(TString fileName, const char *prefix) {
       padPt->SetLeftMargin(0.05);
       padPt->Draw();
       TString XiNamePt=Form("XiPt_%i",iBin);
-      xiPt[iBin]=(TH1F*)xiMass2D->ProjectionY(XiNamePt.Data(),iBin+1,iBin+2);
+      xiPt[iBin]=(TH1F*)xiMass2D->ProjectionY(XiNamePt.Data(),iBin+1,iBin+1);
 
       SetStyleHisto(xiPt[iBin],2,1);
       xiPt[iBin]->GetXaxis()->SetRangeUser(1.285,1.345);

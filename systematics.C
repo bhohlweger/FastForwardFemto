@@ -1589,7 +1589,10 @@ int systematics(const char* file,const char *output="systematics_output")
   else CanSysErrorPlotting->Print(Form("CF_sys_%i_%i_%i.pdf", rebinPP, rebinLP, rebinLL));
 
   // NOW COMPUTE THE ERRORS
-
+  TH1F* outputParamPP = new TH1F("ParaPP","ParaPP",3,0,3);
+  outputParamPP->SetBinContent(1,fRatioPP->GetParameter(0));
+  outputParamPP->SetBinContent(2,fRatioPP->GetParameter(1));
+  outputParamPP->SetBinContent(3,fRatioPP->GetParameter(2));
   TGraphErrors *grFinalErrorPP = new TGraphErrors();
   const float xerrPP = hCFPPAPAPorig->GetBinWidth(1)/2.;
   for(int kstarBin = 0; kstarBin < hCFPPAPAPorig->GetXaxis()->FindBin(fitRangeRightPPAPAP); kstarBin++)
@@ -1604,6 +1607,10 @@ int systematics(const char* file,const char *output="systematics_output")
   grFinalErrorPP->SetMarkerStyle(20);
   grFinalErrorPP->SetLineWidth(3);
 
+  TH1F* outputParamPL = new TH1F("ParaPL","ParaPL",3,0,3);
+  outputParamPL->SetBinContent(1,fRatioPL->GetParameter(0));
+  outputParamPL->SetBinContent(2,fRatioPL->GetParameter(1));
+  outputParamPL->SetBinContent(3,fRatioPL->GetParameter(2));
   TGraphErrors *grFinalErrorPL = new TGraphErrors();
   const float xerrPL = hCFPLAPALorig->GetBinWidth(1)/2.;
   for(int kstarBin = 0; kstarBin < hCFPLAPALorig->GetXaxis()->FindBin(fitRangeRightPPAPAP); kstarBin++)
@@ -1618,6 +1625,10 @@ int systematics(const char* file,const char *output="systematics_output")
   grFinalErrorPL->SetMarkerStyle(20);
   grFinalErrorPL->SetLineWidth(3);
 
+  TH1F* outputParamLL = new TH1F("ParaLL","ParaLL",3,0,3);
+  outputParamLL->SetBinContent(1,fRatioLL->GetParameter(0));
+  outputParamLL->SetBinContent(2,fRatioLL->GetParameter(1));
+  outputParamLL->SetBinContent(3,fRatioLL->GetParameter(2));
   TGraphErrors *grFinalErrorLL = new TGraphErrors();
   const float xerrLL = hCFLLALALorig->GetBinWidth(1)/2.;
   for(int kstarBin = 0; kstarBin < hCFLLALALorig->GetXaxis()->FindBin(fitRangeRightPPAPAP); kstarBin++)
@@ -1660,12 +1671,14 @@ int systematics(const char* file,const char *output="systematics_output")
 
   TFile *ppFile = new TFile("C2totalsysPP.root", "RECREATE");
   hSystErrorPP->Write("C2totalsysPP");
-
+  outputParamPP->Write("SysParamPP");
   TFile *plFile = new TFile("C2totalsysPL.root", "RECREATE");
   hSystErrorPL->Write("C2totalsysPL");
+  outputParamPL->Write("SysParamPL");
 
   TFile *llFile = new TFile("C2totalsysLL.root", "RECREATE");
   hSystErrorLL->Write("C2totalsysLL");
+  outputParamLL->Write("SysParamLL");
 
   return 0;
 }

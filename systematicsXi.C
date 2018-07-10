@@ -1046,6 +1046,10 @@ int systematicsXi(const char* file,const char *output="systematics_output")
   else CanSysErrorPlotting->Print(Form("CF_sys_%i_%i_%i.pdf", rebinPP, rebinLP, rebinLL));
 
   TGraphErrors *grFinalErrorPL = new TGraphErrors();
+  TH1F* outputParamPXi = new TH1F("ParaPXi","ParaPXi",3,0,3);
+  outputParamPXi->SetBinContent(1,fRatioPL->GetParameter(0));
+  outputParamPXi->SetBinContent(2,fRatioPL->GetParameter(1));
+  outputParamPXi->SetBinContent(3,fRatioPL->GetParameter(2));
   const float xerrPL = hCFPLAPALorig->GetBinWidth(1)/2.;
   for(int kstarBin = 0; kstarBin < hCFPLAPALorig->GetXaxis()->FindBin(fitRangeRightPPAPAP); kstarBin++)
   {
@@ -1071,7 +1075,7 @@ int systematicsXi(const char* file,const char *output="systematics_output")
 
   TFile *plFile = new TFile("C2totalsysPXi.root", "RECREATE");
   hSystErrorPL->Write("C2totalsysPXi");
-
+  outputParamPXi->Write("SysParamPXi");
 
   return 0;
 }
