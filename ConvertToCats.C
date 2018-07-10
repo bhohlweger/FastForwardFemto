@@ -11,6 +11,7 @@
 #include "TStyle.h"
 #include "TLatex.h"
 #include <vector>
+
 std::vector<int> fFillColors = {kGray+1, kRed-10, kBlue-9, kGreen-8, kMagenta-9, kOrange-9, kCyan-3, kYellow-7};
 std::vector<int> fColors     = {kBlack, kRed+1 , kBlue+2, kGreen+3, kMagenta+1, kOrange-1, kCyan+2, kYellow+2};
 std::vector<int> fMarkers    = {kFullCircle, kFullSquare, kOpenCircle, kOpenSquare, kOpenDiamond, kOpenCross, kFullCross, kFullDiamond, kFullStar, kOpenStar};
@@ -470,6 +471,7 @@ void BlindBinning(TH1F* InputppSE, TH1F* InputppME, TH1F* InputApApSE, TH1F* Inp
   return;
 }
 
+
 void ConvertToCats(const char *fileExp, TString partPair) {
   TFile* _file0=TFile::Open(fileExp,"READ");
   const float normleft = 200;
@@ -479,6 +481,7 @@ void ConvertToCats(const char *fileExp, TString partPair) {
   TList *Results;
   dirResults->GetObject("MBResults",Results);
   TList* tmpFolder;
+
   TH1F *ppSE;
   TH1F *ppME;
 
@@ -540,5 +543,5 @@ void ConvertToCats(const char *fileExp, TString partPair) {
     BlindBinning(ppSE,ppME,ApApSE,ApApME,confLevel,partPair);
     confLevel+=0.05;
   }
-
+  return; 
 }
