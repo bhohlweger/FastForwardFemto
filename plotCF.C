@@ -581,7 +581,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   hist_CF_pp_ApAp_exp[0]->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
   hist_CF_pp_ApAp_exp[0]->GetXaxis()->SetRangeUser(0, 0.4);
   hist_CF_pp_ApAp_exp[0]->GetYaxis()->SetRangeUser(0, 4);
-  auto* leg= new TLegend(0.25, 0.7, 0.95, 0.95);
+  auto* leg= new TLegend(0.18, 0.7, 0.55, 0.85);
   leg->AddEntry(hist_CF_pp_ApAp_exp[0], "Particle-particle CF", "pe");
   leg->AddEntry(hist_CF_pp_ApAp_exp[1], "Antiparticle-antiparticle CF", "pe");
   leg->Draw("same");

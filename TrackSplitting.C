@@ -194,7 +194,7 @@ void TrackSplitting(const char *filename,const char *prefix) {
   const float normleft = 0.2;
   const float normright = 0.4;
   TFile *file=TFile::Open(filename);
-
+  int rebinningFac = 4;
   float TPCradii[9] = {85.,105.,125.,145.,165.,185.,205.,225.,245.};
   TString RelKNames[6]={"Proton","AntiProton","Lambda","AntiLambda","Xi","AntiXi"};
   TString DaugNames[3]={"#pi","p","#pi"};
@@ -242,6 +242,7 @@ void TrackSplitting(const char *filename,const char *prefix) {
               TString SEName=Form("SERad_%i_Particle%i_Particle%i_Daug%i",iRad,iPart1,iPart2,iDaug);
               SEDist[iPart1][iPart2][iDaug][iRad]=(TH2F*)tmpFolder->FindObject(SEName.Data());
               SEDist[iPart1][iPart2][iDaug][iRad]->SetDirectory(0);
+              SEDist[iPart1][iPart2][iDaug][iRad]->Rebin2D(rebinningFac);
               SEDist[iPart1][iPart2][iDaug][iRad]->Scale(1./SEDist[iPart1][iPart2][iDaug][iRad]->GetEntries());
               if (!SEDist[iPart1][iPart2]) {
                 std::cout << SEName.Data() << " not Found\n";
@@ -251,6 +252,7 @@ void TrackSplitting(const char *filename,const char *prefix) {
               TString MEName=Form("MERad_%i_Particle%i_Particle%i_Daug%i",iRad,iPart1,iPart2,iDaug);
               MEDist[iPart1][iPart2][iDaug][iRad]=(TH2F*)tmpFolder->FindObject(MEName.Data());
               MEDist[iPart1][iPart2][iDaug][iRad]->SetDirectory(0);
+              MEDist[iPart1][iPart2][iDaug][iRad]->Rebin2D(rebinningFac);
               MEDist[iPart1][iPart2][iDaug][iRad]->Scale(1./MEDist[iPart1][iPart2][iDaug][iRad]->GetEntries());
               if (!MEDist[iPart1][iPart2]) {
                 std::cout << MEName.Data() << " not Found\n";
@@ -265,6 +267,7 @@ void TrackSplitting(const char *filename,const char *prefix) {
               CFDist[iPart1][iPart2][iDaug][iRad]=(TH2F*)SEDist[iPart1][iPart2][iDaug][iRad]->Clone(CFName.Data());
               CFDist[iPart1][iPart2][iDaug][iRad]->SetTitle(CFName.Data());
               CFDist[iPart1][iPart2][iDaug][iRad]->Divide(MEDist[iPart1][iPart2][iDaug][iRad]);
+              CFDist[iPart1][iPart2][iDaug][iRad]->Scale(SEDist[iPart1][iPart2][iDaug][iRad]->GetEntries()/MEDist[iPart1][iPart2][iDaug][iRad]->GetEntries());
               CFDist[iPart1][iPart2][iDaug][iRad]->GetXaxis()->SetRangeUser(0,0.2);
               CFDist[iPart1][iPart2][iDaug][iRad]->GetYaxis()->SetRangeUser(0,0.2);
               CFDist[iPart1][iPart2][iDaug][iRad]->GetXaxis()->SetLabelSize(0.06);
@@ -273,6 +276,8 @@ void TrackSplitting(const char *filename,const char *prefix) {
 //              CFDist[iPart1][iPart2][iDaug][iRad]->GetXaxis()->SetLabelOffset(1.1);
               CFDist[iPart1][iPart2][iDaug][iRad]->GetYaxis()->SetLabelSize(0.06);
               CFDist[iPart1][iPart2][iDaug][iRad]->GetYaxis()->SetTitleSize(0.07);
+              CFDist[iPart1][iPart2][iDaug][iRad]->SetTitleSize(0.6);
+//              gStyle->SetTitleFontSize(0.4);
 //              CFDist[iPart1][iPart2][iDaug][iRad]->GetYaxis()->SetLabelOffset(1.1);
               if (iPart1==0&&iPart2==0&&iDaug<1) {
                 c1[iPart2][iDaug]->cd(iRad+1);

@@ -95,14 +95,14 @@ void SetStyle(bool graypalette, bool title)
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void SetStyleHisto(TH1 *histo, int marker, int color)
 {
-  histo->GetXaxis()->SetLabelSize(0.045);
-  histo->GetXaxis()->SetTitleSize(0.05);
-  histo->GetXaxis()->SetLabelOffset(0.01);
+  histo->GetXaxis()->SetLabelSize(0.09);
+  histo->GetXaxis()->SetTitleSize(0.06);
+  histo->GetXaxis()->SetLabelOffset(0.02);
   histo->GetXaxis()->SetTitleOffset(1.2);
   histo->GetXaxis()->SetLabelFont(42);
-  histo->GetYaxis()->SetLabelSize(0.045);
-  histo->GetYaxis()->SetTitleSize(0.05);
-  histo->GetYaxis()->SetLabelOffset(0.01);
+  histo->GetYaxis()->SetLabelSize(0.065);
+  histo->GetYaxis()->SetTitleSize(0.06);
+  histo->GetYaxis()->SetLabelOffset(0.02);
   histo->GetYaxis()->SetTitleOffset(1.2);
   histo->SetMarkerStyle(20);
   histo->SetMarkerColor(color);
@@ -489,7 +489,7 @@ void PurityByPeriod(const char *fileName, const char *prefix) {
   FinalPurityAV0=new TH1F("Purity Anti-Lambda","Purity Anti-Lambda",nRuns,0,nRuns);
   FinalPurityAV0->GetXaxis()->SetTitle("Run Number");
   FinalPurityAV0->GetYaxis()->SetTitle("Purity");
-//  FinalPurityAV0->GetYaxis()->SetRangeUser(0.8,1.05);
+  FinalPurityAV0->GetYaxis()->SetRangeUser(80,105);
   FinalPurityCasc=new TH1F("Purity Xi","Purity Xi",nRuns,0,nRuns);
   FinalPurityCasc->GetXaxis()->SetTitle("Run Number");
   FinalPurityCasc->GetYaxis()->SetTitle("Purity");
@@ -500,15 +500,18 @@ void PurityByPeriod(const char *fileName, const char *prefix) {
   FinalPurityACasc->GetYaxis()->SetRangeUser(80,105);
   for (int i=1;i<nRuns+1;++i) {
     FinalPurityV0->SetBinContent(i,_valV0Purity.at(i-1));
-    FinalPurityV0->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
+    if (i%4==0)FinalPurityV0->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
     FinalPurityAV0->SetBinContent(i,_valAntiV0Purity.at(i-1));
-    FinalPurityAV0->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
+    if (i%4==0)FinalPurityAV0->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
     FinalPurityCasc->SetBinContent(i,_valCascPurity.at(i-1));
-    FinalPurityCasc->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
+    if (i%4==0)FinalPurityCasc->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
     FinalPurityACasc->SetBinContent(i,_valAntiCascPurity.at(i-1));
-    FinalPurityACasc->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
+    if (i%4==0)FinalPurityACasc->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
   }
-
+  SetStyleHisto(FinalPurityV0,1,1);
+  SetStyleHisto(FinalPurityAV0,1,1);
+  SetStyleHisto(FinalPurityCasc,1,1);
+  SetStyleHisto(FinalPurityACasc,1,1);
 
 
   cPurity->cd(1);
@@ -519,4 +522,5 @@ void PurityByPeriod(const char *fileName, const char *prefix) {
   FinalPurityCasc->DrawCopy();
   cPurity->cd(4);
   FinalPurityACasc->DrawCopy();
+  cPurity->SaveAs("PurityPerRunnumber.pdf");
 }
