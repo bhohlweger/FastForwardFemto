@@ -455,6 +455,8 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
   const char *fit = "pol2";
   bool useFit = false;
 
+  const float rebinData = 5.f;
+
   TH1F *hSystPP = new TH1F("hSystPP", "", 750, 0, 3);
   TH1F *hSystPL = new TH1F("hSystPL", "", 150, 0, 3);
   TH1F *hSystLL = new TH1F("hSystLL", "", 150, 0, 3);
@@ -516,38 +518,50 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
 
   TList* tmpFolder=(TList*)listTP[0]->FindObject("Particle0_Particle0");
   TH1F *hREPPorig = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle0");
+  hREPPorig->Rebin(rebinData);
   TH1F *hMEPPorig = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle0");
+  hMEPPorig->Rebin(rebinData);
   HistName = "hCFPP";
   TH1F *hCFPPorig = Calculate_CF(hREPPorig,hMEPPorig,HistName.Data(),normLeft,normRight);
 
   tmpFolder=(TList*)listTP[0]->FindObject("Particle0_Particle2");
   TH1F *hREPLorig = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle2");
+  hREPLorig->Rebin(rebinData);
   TH1F *hMEPLorig = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle2");
+  hMEPLorig->Rebin(rebinData);
   HistName = "hCFPL";
   TH1F *hCFPLorig = Calculate_CF(hREPLorig,hMEPLorig,HistName.Data(),normLeft,normRight);
 
   tmpFolder=(TList*)listTP[0]->FindObject("Particle2_Particle2");
   TH1F *hRELLorig = (TH1F*)tmpFolder->FindObject("SEDist_Particle2_Particle2");
+  hRELLorig->Rebin(rebinData);
   TH1F *hMELLorig = (TH1F*)tmpFolder->FindObject("MEDist_Particle2_Particle2");
+  hMELLorig->Rebin(rebinData);
   HistName = "hCFLL";
   TH1F *hCFLLorig = Calculate_CF(hRELLorig,hMELLorig,HistName.Data(),normLeft,normRight);
 
   //Second AntiBaryon-AntiBaryon Pairs:
     tmpFolder=(TList*)listTP[0]->FindObject("Particle1_Particle1");
   TH1F *hREAPAPorig = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle1");
+  hREAPAPorig->Rebin(rebinData);
   TH1F *hMEAPAPorig = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle1");
+  hMEAPAPorig->Rebin(rebinData);
   HistName = "hCFAPAP";
   TH1F *hCFAPAPorig = Calculate_CF(hREAPAPorig,hMEAPAPorig,HistName.Data(),normLeft,normRight);
 
   tmpFolder=(TList*)listTP[0]->FindObject("Particle1_Particle3");
   TH1F *hREAPALorig = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle3");
+  hREAPALorig->Rebin(rebinData);
   TH1F *hMEAPALorig = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle3");
+  hMEAPALorig->Rebin(rebinData);
   HistName = "hCFAPAL";
   TH1F *hCFAPALorig = Calculate_CF(hREAPALorig,hMEAPALorig,HistName.Data(),normLeft,normRight);
 
   tmpFolder=(TList*)listTP[0]->FindObject("Particle3_Particle3");
   TH1F *hREALALorig = (TH1F*)tmpFolder->FindObject("SEDist_Particle3_Particle3");
+  hREALALorig->Rebin(rebinData);
   TH1F *hMEALALorig = (TH1F*)tmpFolder->FindObject("MEDist_Particle3_Particle3");
+  hMEALALorig->Rebin(rebinData);
   HistName = "hCFALAL";
   TH1F *hCFALALorig = Calculate_CF(hREALALorig,hMEALALorig,HistName.Data(),normLeft,normRight);
 
@@ -560,7 +574,6 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
 
   HistName = "hCFLLALAL";
   TH1F *hCFLLALALorig = add_CF(hCFLLorig,hCFALALorig,HistName.Data());
-
 
   //Lets define the histos:
   //Baryon-Baryon pairs:
@@ -600,7 +613,9 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
     //First Baryon-Baryon Pairs:
     tmpFolder=(TList*)listTP[taskNumber]->FindObject("Particle0_Particle0");
     hREPP[taskNumber] = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle0");
+    if(taskNumber != 0) hREPP[taskNumber]->Rebin(rebinData);
     hMEPP[taskNumber] = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle0");
+    if(taskNumber != 0) hMEPP[taskNumber]->Rebin(rebinData);
     hREPP[taskNumber]->Rebin(rebinPP);
     hMEPP[taskNumber]->Rebin(rebinPP);
     HistName = "hCFPP_task";
@@ -610,7 +625,9 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
 
     tmpFolder=(TList*)listTP[taskNumber]->FindObject("Particle0_Particle2");
     hREPL[taskNumber] = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle2");
+    if(taskNumber != 0) hREPL[taskNumber]->Rebin(rebinData);
     hMEPL[taskNumber] = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle2");
+    if(taskNumber != 0) hMEPL[taskNumber]->Rebin(rebinData);
     hREPL[taskNumber]->Rebin(rebinLP);
     hMEPL[taskNumber]->Rebin(rebinLP);
     HistName = "hCFPL_task";
@@ -620,7 +637,9 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
 
     tmpFolder=(TList*)listTP[taskNumber]->FindObject("Particle2_Particle2");
     hRELL[taskNumber] = (TH1F*)tmpFolder->FindObject("SEDist_Particle2_Particle2");
+    if(taskNumber != 0) hRELL[taskNumber]->Rebin(rebinData);
     hMELL[taskNumber] = (TH1F*)tmpFolder->FindObject("MEDist_Particle2_Particle2");
+    if(taskNumber != 0) hMELL[taskNumber]->Rebin(rebinData);
     hRELL[taskNumber]->Rebin(rebinLL);
     hMELL[taskNumber]->Rebin(rebinLL);
     HistName = "hCFLL_task";
@@ -631,7 +650,9 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
     //Second AntiBaryon-AntiBaryon Pairs:
     tmpFolder=(TList*)listTP[taskNumber]->FindObject("Particle1_Particle1");
     hREAPAP[taskNumber] = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle1");
+    if(taskNumber != 0) hREAPAP[taskNumber]->Rebin(rebinData);
     hMEAPAP[taskNumber] = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle1");
+    if(taskNumber != 0) hMEAPAP[taskNumber]->Rebin(rebinData);
     hREAPAP[taskNumber]->Rebin(rebinPP);
     hMEAPAP[taskNumber]->Rebin(rebinPP);
     HistName = "hCFAPAP_task";
@@ -641,7 +662,9 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
 
     tmpFolder=(TList*)listTP[taskNumber]->FindObject("Particle1_Particle3");
     hREAPAL[taskNumber] = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle3");
+    if(taskNumber != 0) hREAPAL[taskNumber]->Rebin(rebinData);
     hMEAPAL[taskNumber] = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle3");
+    if(taskNumber != 0) hMEAPAL[taskNumber]->Rebin(rebinData);
     hREAPAL[taskNumber]->Rebin(rebinLP);
     hMEAPAL[taskNumber]->Rebin(rebinLP);
     HistName = "hCFAPAL_task";
@@ -651,7 +674,9 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
 
     tmpFolder=(TList*)listTP[taskNumber]->FindObject("Particle3_Particle3");
     hREALAL[taskNumber] = (TH1F*)tmpFolder->FindObject("SEDist_Particle3_Particle3");
+    if(taskNumber != 0) hREALAL[taskNumber]->Rebin(rebinData);
     hMEALAL[taskNumber] = (TH1F*)tmpFolder->FindObject("MEDist_Particle3_Particle3");
+    if(taskNumber != 0) hMEALAL[taskNumber]->Rebin(rebinData);
     hREALAL[taskNumber]->Rebin(rebinLL);
     hMEALAL[taskNumber]->Rebin(rebinLL);
     HistName = "hCFALAL_task";
@@ -680,6 +705,7 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
   TCanvas *CanCFsummarySum = new TCanvas("CanCFsummarySum","CanCFsummarySum",0,0,1500,500);
   CanCFsummarySum->Divide(3,1);
 
+std::cout << hCFPPAPAP[0]->GetNbinsX() << " " << hCFPPAPAP[1]->GetNbinsX() << "\n";
   for(int taskNumber = 0;taskNumber < NTasks; taskNumber++)
   {
     if(taskNumber < NTasksProtonVariations) {
@@ -707,7 +733,6 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
   }
    if(rebinPP == 1 && rebinLP == 1 && rebinLL == 1) CanCFsummarySum->Print("CF.pdf");
    else CanCFsummarySum->Print(Form("CF_%i_%i_%i.pdf", rebinPP, rebinLP, rebinLL));
-
 
   //Lets build all ratios:
   
@@ -747,7 +772,6 @@ int systematics_Bernie(const char* file,const char *output="systematics_output")
     hCFRatioLLALAL[V0Variation]->Divide(hCFLLALAL[V0Variation+1]);
   }
 
-  
   
   //Evaluate the systematic error for pp pairs. Since we vary the values up and down we take the larger systematic uncertainty per bin
   //To not confuse oneself we use for every bin an own array to see what happens
