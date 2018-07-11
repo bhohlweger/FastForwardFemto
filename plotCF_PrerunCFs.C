@@ -173,7 +173,7 @@ TGraphErrors *DrawSystematicError(TH1F* histexp,TH1F *histerr,double errorwidth)
 
   for(int i=0;i<histbins;i++)
   {
-    if(histexp->GetBinCenter(i+1) > 0.2) continue;
+    if(histexp->GetBinCenter(i+1) > 200) continue;
     ge_SysError_C2->SetPoint(i, histexp->GetBinCenter(i+1), histexp->GetBinContent(i+1));
     ge_SysError_C2->SetPointError(i, errorwidth, histerr->GetBinContent(i+1));
   }
@@ -197,7 +197,7 @@ TGraphErrors *FemtoModelFitBands(TGraph *grMedian1, TGraph *grLower, TGraph *grU
     yAll.push_back(yLo);
     yAll.push_back(yUp);
     std::sort(yAll.begin(), yAll.end());
-    grFemtoModel->SetPoint(count, x/1000.f, (yAll[2]+yAll[0])/2.f);
+    grFemtoModel->SetPoint(count, x, (yAll[2]+yAll[0])/2.f);
     grFemtoModel->SetPointError(count++, 0, (yAll[2]+yAll[0])/2.f - yAll[0]);
   }
   return grFemtoModel;
@@ -227,29 +227,32 @@ TGraphErrors *convertHistoInGev(TH1F *gr) {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", const char *simfile = "", const char *CATSfile = "")
+void plotCF_PrerunCFs(const int RebinCF, const char *baseDirExp = "", const char *baseDirSim = "", const char *CATSfile = "")
 {
   gStyle->SetCanvasPreferGL(1);
   const float right = 0.025;
   const float top = 0.025;
-
   // Mixed event normalisation
   const float normleft = 0.2;
   const float normright = 0.4;
   const float spinningDepth = 10.f;
 
   // for Data
-  const float rebinData = 5;
+  const float rebinData = 3;
+
+  // for pythia comparison
+  const float simRebinning = 5;
 
   // for pythia comparison
   const float rebin = 2;
 
-//  const int energy = 5; // TeV
-//  const char *system = "p-Pb";
-  const int energy = 13; // TeV
-  const char *system = "pp";
+  const int energy = 5; // TeV
+  const char *system = "p-Pb";
+//  const int energy = 13; // TeV
+//  const char *system = "pp";
 
   bool EPOS = false;
+  bool unbinnedSyst = true;
 
   const char *prefix = "MB";
   const char *prefixSim = prefix;
@@ -257,119 +260,99 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   const char *addonSim = addon;
 
   TString data = "Data";
-  TString sim = "DPMJET";
+  TString sim = "EPOS";
 //  TString sim = "Pythia 8";
 
-  float r = 1.437;
-  float rErr = 0.011;
-  float rSystErrUp = 0.013;
-  float rSystErrDown = 0.006;
+
 //  float r = 1.188;
 //  float rErr = 0.009;
 //  float rSystErrUp = 0.016;
 //  float rSystErrDown = 0.009;
+  //16MeV Binning
 
-  float ppBL0 = 0.924;
-  float ppBL1 = 0.386;
-  float pLBL0 = 0.898;
-  float pLBL1 = 0.355;
-  float LLBL0 = 0.894;
-  float LLBL1 = 0.320;
-  float pXiBL0 = 0.919;
-  float pXiBL1 = 0.453;
+  float ppBL0 =0.937473;
+  float ppBL1 =0.000279532;
+  float pLBL0 = 0.944996;
+  float pLBL1 = 0.000204381;
+  float LLBL0 = 0.947543;
+  float LLBL1 = 0.000144773;
+  float pXiBL0 = 1.05248;
+  float pXiBL1 = 1.87445e-10;
 
-  //  EPOS
-  if(EPOS) {
-    r = 1.476;
-    rErr = 0.015;
-    rSystErrUp = 0.007;
-    rSystErrDown = 0.014;
+  float r = 1.420;
+  float rErr = 0.008;
+  float rSystErrUp = 0.011;
+  float rSystErrDown = 0.007;
 
-    ppBL0 = 0.931;
-    ppBL1 = 0.399;
-    pLBL0 = 0.938;
-    pLBL1 = 0.328;
-    LLBL0 = 0.893;
-    LLBL1 = 0.321;
-    pXiBL0 = 0.921;
-    pXiBL1 = 0.443;
-  }
+//  //20MeV Binning
+//
+//  float ppBL0 =0.937;
+//  float ppBL1 =0.000276;
+//  float pLBL0 = 0.938;
+//  float pLBL1 = 0.000208;
+//  float LLBL0 = 0.952;
+//  float LLBL1 = 0.000136;
+//  float pXiBL0 = 1.026;
+//  float pXiBL1 = 1.15063e-10;
+//
+//  float r = 1.420;
+//  float rErr = 0.008;
+//  float rSystErrUp = 0.011;
+//  float rSystErrDown = 0.007;
+//
+
   SetStyle();
 
   // EXP DATA
-  TFile* _file0=TFile::Open(expfile);
-  TDirectoryFile *dirResults=(TDirectoryFile*)(_file0->FindObjectAny(Form("%sResults%s", prefix, addon)));
-  TList *Results;
-  dirResults->GetObject(Form("%sResults%s", prefix, addon),Results);
-  TList* tmpFolder=(TList*)Results->FindObject("Particle0_Particle0");
-  TH1F* histRE_relK_pp = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle0");
-//  histRE_relK_pp->Rebin(rebinData);
-  TH1F* histME_relK_pp = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle0");
-//  histME_relK_pp->Rebin(rebinData);
-  tmpFolder=(TList*)Results->FindObject("Particle1_Particle1");
-  TH1F* histRE_relK_ApAp = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle1");
-//  histRE_relK_ApAp->Rebin(rebinData);
-  TH1F* histME_relK_ApAp = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle1");
-//  histME_relK_ApAp->Rebin(rebinData);
-  tmpFolder=(TList*)Results->FindObject("Particle0_Particle2");
-  TH1F* histRE_relK_Lp = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle2");
-  histRE_relK_Lp->Rebin(rebinData);
-  TH1F* histME_relK_Lp = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle2");
-  histME_relK_Lp->Rebin(rebinData);
-  tmpFolder=(TList*)Results->FindObject("Particle1_Particle3");
-  TH1F* histRE_relK_ALAp = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle3");
-  histRE_relK_ALAp->Rebin(rebinData);
-  TH1F* histME_relK_ALAp = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle3");
-  histME_relK_ALAp->Rebin(rebinData);
-  tmpFolder=(TList*)Results->FindObject("Particle2_Particle2");
-  TH1F* histRE_relK_LL = (TH1F*)tmpFolder->FindObject("SEDist_Particle2_Particle2");
-  histRE_relK_LL->Rebin(rebinData);
-  TH1F* histME_relK_LL = (TH1F*)tmpFolder->FindObject("MEDist_Particle2_Particle2");
-  histME_relK_LL->Rebin(rebinData);
-  tmpFolder=(TList*)Results->FindObject("Particle3_Particle3");
-  TH1F* histRE_relK_ALAL = (TH1F*)tmpFolder->FindObject("SEDist_Particle3_Particle3");
-  histRE_relK_ALAL->Rebin(rebinData);
-  TH1F* histME_relK_ALAL = (TH1F*)tmpFolder->FindObject("MEDist_Particle3_Particle3");
-  histME_relK_ALAL->Rebin(rebinData);
-  tmpFolder=(TList*)Results->FindObject("Particle0_Particle4");
-  TH1F* histRE_relK_Xip = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle4");
-  histRE_relK_Xip->Rebin(rebinData);
-  TH1F* histME_relK_Xip = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle4");
-  histME_relK_Xip->Rebin(rebinData);
-  tmpFolder=(TList*)Results->FindObject("Particle1_Particle5");
-  TH1F* histRE_relK_AXiAp = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle5");
-  histRE_relK_AXiAp->Rebin(rebinData);
-  TH1F* histME_relK_AXiAp = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle5");
-  histME_relK_AXiAp->Rebin(rebinData);
-  TH1F *hist_CF_Lp_ALAp_exp[3];
-  TH1F *hist_CF_LL_ALAL_exp[3];
   TH1F *hist_CF_pp_ApAp_exp[3];
+  TFile* _filePP=TFile::Open(Form("%s/CFOutput_pp_Rebin_1.root",baseDirExp));
+  if (!_filePP) {
+    std::cout << "No pp input file \n";
+  }
+  hist_CF_pp_ApAp_exp[0] = (TH1F*)_filePP->Get("hCkPartNorm");
+  hist_CF_pp_ApAp_exp[1] = (TH1F*)_filePP->Get("hCkAntiPartNorm");
+  hist_CF_pp_ApAp_exp[2] = (TH1F*)_filePP->Get("hCkTotNormWeight");
+
+  TH1F *hist_CF_Lp_ALAp_exp[3] ;
+  TFile* _filePL=TFile::Open(Form("%s/CFOutput_pL_Rebin_%d.root",baseDirExp,RebinCF));
+  if (!_filePL) {
+    std::cout << "No pl input file \n";
+  }
+  hist_CF_Lp_ALAp_exp[0] = (TH1F*)_filePL->Get("hCkPartNorm");
+  hist_CF_Lp_ALAp_exp[1] = (TH1F*)_filePL->Get("hCkAntiPartNorm");
+  hist_CF_Lp_ALAp_exp[2] = (TH1F*)_filePL->Get("hCkTotNormWeight");
+
+  TH1F *hist_CF_LL_ALAL_exp[3];
+  TFile* _fileLL=TFile::Open(Form("%s/CFOutput_LL_Rebin_%d.root",baseDirExp,RebinCF));
+  if (!_fileLL) {
+    std::cout << "No ll input file \n";
+  }
+  hist_CF_LL_ALAL_exp[0] = (TH1F*)_fileLL->Get("hCkPartNorm");
+  hist_CF_LL_ALAL_exp[1] = (TH1F*)_fileLL->Get("hCkAntiPartNorm");
+  hist_CF_LL_ALAL_exp[2] = (TH1F*)_fileLL->Get("hCkTotNormWeight");
+
   TH1F *hist_CF_pXi_ApAXi_exp[3];
-
-  hist_CF_Lp_ALAp_exp[0] = Calculate_CF(histRE_relK_Lp,histME_relK_Lp,"hist_CF_Lp_exp",normleft,normright, addon, spinningDepth);
-  hist_CF_Lp_ALAp_exp[1] = Calculate_CF(histRE_relK_ALAp,histME_relK_ALAp,"hist_CF_ALAp_exp",normleft,normright, addon, spinningDepth);
-  hist_CF_Lp_ALAp_exp[2] = add_CF(hist_CF_Lp_ALAp_exp[0],hist_CF_Lp_ALAp_exp[1],"hist_CF_Lp_ALAp_exp_sum");
-  hist_CF_LL_ALAL_exp[0] = Calculate_CF(histRE_relK_LL,histME_relK_LL,"hist_CF_LL_exp",normleft,normright, addon, spinningDepth);
-  hist_CF_LL_ALAL_exp[1] = Calculate_CF(histRE_relK_ALAL,histME_relK_ALAL,"hist_CF_LL_exp",normleft,normright, addon, spinningDepth);
-  hist_CF_LL_ALAL_exp[2] = add_CF(hist_CF_LL_ALAL_exp[0],hist_CF_LL_ALAL_exp[1],"hist_CF_LL_ALAL_exp_sum");
-  hist_CF_pp_ApAp_exp[0] = Calculate_CF(histRE_relK_pp,histME_relK_pp,"hist_CF_pp",normleft,normright, addon, spinningDepth);
-  hist_CF_pp_ApAp_exp[1] = Calculate_CF(histRE_relK_ApAp,histME_relK_ApAp,"hist_CF_ApAp",normleft,normright, addon, spinningDepth);
-  hist_CF_pp_ApAp_exp[2] = add_CF(hist_CF_pp_ApAp_exp[0],hist_CF_pp_ApAp_exp[1],"hist_CF_pp_ApAp_exp_sum");
-  hist_CF_pXi_ApAXi_exp[0] = Calculate_CF(histRE_relK_Xip,histME_relK_Xip,"hist_CF_pXi",normleft,normright, addon, spinningDepth);
-  hist_CF_pXi_ApAXi_exp[1] = Calculate_CF(histRE_relK_AXiAp,histME_relK_AXiAp,"hist_CF_ApAXi",normleft,normright, addon, spinningDepth);
-  hist_CF_pXi_ApAXi_exp[2] = add_CF(hist_CF_pXi_ApAXi_exp[0],hist_CF_pXi_ApAXi_exp[1],"hist_CF_pXi_ApAXi_exp_sum");
-
+  TFile* _filepXi=TFile::Open(Form("%s/CFOutput_pXi_Rebin_%d.root",baseDirExp,RebinCF));
+  if (!_filepXi) {
+    std::cout << "No pxi input file \n";
+  }
+  hist_CF_pXi_ApAXi_exp[0] = (TH1F*)_filepXi->Get("hCkPartNormShifted");
+  hist_CF_pXi_ApAXi_exp[1] = (TH1F*)_filepXi->Get("hCkAntiPartNormShifted");
+  hist_CF_pXi_ApAXi_exp[2] = (TH1F*)_filepXi->Get("hCkTotNormWeight_Shifted");
   SetStyleHisto(hist_CF_pp_ApAp_exp[0], 1,1);
-  SetStyleHisto(hist_CF_Lp_ALAp_exp[0], 1,1);
-  SetStyleHisto(hist_CF_LL_ALAL_exp[0], 1,1);
-  SetStyleHisto(hist_CF_pXi_ApAXi_exp[0], 1,1);
   SetStyleHisto(hist_CF_pp_ApAp_exp[1], 0,2);
-  SetStyleHisto(hist_CF_Lp_ALAp_exp[1], 0,2);
-  SetStyleHisto(hist_CF_LL_ALAL_exp[1], 0,2);
-  SetStyleHisto(hist_CF_pXi_ApAXi_exp[1], 0,2);
   SetStyleHisto(hist_CF_pp_ApAp_exp[2], 0,0);
+
+  SetStyleHisto(hist_CF_Lp_ALAp_exp[0], 1,1);
+  SetStyleHisto(hist_CF_Lp_ALAp_exp[1], 0,2);
   SetStyleHisto(hist_CF_Lp_ALAp_exp[2], 0,0);
+
+  SetStyleHisto(hist_CF_LL_ALAL_exp[0], 1,1);
+  SetStyleHisto(hist_CF_LL_ALAL_exp[1], 0,2);
   SetStyleHisto(hist_CF_LL_ALAL_exp[2], 0,0);
+
+  SetStyleHisto(hist_CF_pXi_ApAXi_exp[0], 1,1);
+  SetStyleHisto(hist_CF_pXi_ApAXi_exp[1], 0,2);
   SetStyleHisto(hist_CF_pXi_ApAXi_exp[2], 0,0);
 
   // SYSTEMATIC UNCERTAINTIES
@@ -381,62 +364,110 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   TFile* file_sys_pL = new TFile(input_sys_pL.Data());
   TFile* file_sys_pXi = new TFile(input_sys_pXi.Data());
   TFile* file_sys_LL = new TFile(input_sys_LL.Data());
-  TH1F* hist_sys_pp = (TH1F*)file_sys_pp->Get("C2totalsysPP");
-  hist_sys_pp->SetLineWidth(2.0);
-  TH1F* hist_sys_pL = (TH1F*)file_sys_pL->Get("C2totalsysPL");
-  hist_sys_pL->SetLineWidth(2.0);
-  TH1F* hist_sys_LL = (TH1F*)file_sys_LL->Get("C2totalsysLL");
-  hist_sys_LL->SetLineWidth(2.0);
-  TH1F* hist_sys_pXi = (TH1F*)file_sys_pXi->Get("C2totalsysPXi");
-  hist_sys_pXi->SetLineWidth(2.0);
+  TH1F* hist_sys_pp;
+  if (unbinnedSyst) {
+    TF1 *RelSystPP;
+    RelSystPP=(TF1*)file_sys_pp->Get("RelSysPPUnbinned");
+    int nBinsX = hist_CF_pp_ApAp_exp[2]->GetNbinsX();
+    float minX = hist_CF_pp_ApAp_exp[2]->GetXaxis()->GetXmin();
+    float maxX = hist_CF_pp_ApAp_exp[2]->GetXaxis()->GetXmax();
+    hist_sys_pp=new TH1F("UnbinnedSystPP","UnbinnedSystPP",nBinsX,minX,maxX);
+    int binMax=hist_CF_pp_ApAp_exp[2]->FindBin(500);
+    for (int iBin = 1; iBin< binMax; iBin++) {
+      const float x = hist_CF_pp_ApAp_exp[2]->GetBinCenter(iBin);
+      const float y = hist_CF_pp_ApAp_exp[2]->GetBinContent(iBin);
+      hist_sys_pp->SetBinContent(iBin,y * RelSystPP->Eval(x/1000.));
+    }
+    hist_sys_pp->SetLineWidth(2.0);
+  } else {
+    hist_sys_pp = (TH1F*)file_sys_pp->Get("C2totalsysPP");
+    hist_sys_pp->SetLineWidth(2.0);
+  }
+  TH1F* hist_sys_pL;
+  if (unbinnedSyst) {
+    TF1 *RelSystPL;
+    RelSystPL=(TF1*)file_sys_pL->Get("RelSysPLUnbinned");
+    int nBinsX = hist_CF_Lp_ALAp_exp[2]->GetNbinsX();
+    float minX = hist_CF_Lp_ALAp_exp[2]->GetXaxis()->GetXmin();
+    float maxX = hist_CF_Lp_ALAp_exp[2]->GetXaxis()->GetXmax();
+    hist_sys_pL=new TH1F("UnbinnedSystPL","UnbinnedSystPL",nBinsX,minX,maxX);
+    int binMax=hist_CF_Lp_ALAp_exp[2]->FindBin(500);
+    for (int iBin = 1; iBin< binMax; iBin++) {
+      const float x = hist_CF_Lp_ALAp_exp[2]->GetBinCenter(iBin);
+      const float y = hist_CF_Lp_ALAp_exp[2]->GetBinContent(iBin);
+      hist_sys_pL->SetBinContent(iBin,y * RelSystPL->Eval(x/1000.));
+    }
+    hist_sys_pL->SetLineWidth(2.0);
+  } else {
+    hist_sys_pL = (TH1F*)file_sys_pL->Get("C2totalsysPL");
+    hist_sys_pL->SetLineWidth(2.0);
+  }
 
+  TH1F* hist_sys_LL;
+  if (unbinnedSyst) {
+    TF1 *RelSystLL;
+    RelSystLL=(TF1*)file_sys_LL->Get("RelSysLLUnbinned");
+    int nBinsX = hist_CF_LL_ALAL_exp[2]->GetNbinsX();
+    float minX = hist_CF_LL_ALAL_exp[2]->GetXaxis()->GetXmin();
+    float maxX = hist_CF_LL_ALAL_exp[2]->GetXaxis()->GetXmax();
+    hist_sys_LL=new TH1F("UnbinnedSystLL","UnbinnedSystLL",nBinsX,minX,maxX);
+    int binMax=hist_CF_LL_ALAL_exp[2]->FindBin(500);
+    for (int iBin = 1; iBin< binMax; iBin++) {
+      const float x = hist_CF_LL_ALAL_exp[2]->GetBinCenter(iBin);
+      const float y = hist_CF_LL_ALAL_exp[2]->GetBinContent(iBin);
+      hist_sys_LL->SetBinContent(iBin,y * RelSystLL->Eval(x/1000.));
+    }
+    hist_sys_LL->SetLineWidth(2.0);
+  } else {
+    hist_sys_LL = (TH1F*)file_sys_LL->Get("C2totalsysLL");
+    hist_sys_LL->SetLineWidth(2.0);
+  }
+
+  TH1F* hist_sys_pXi;
+  if (unbinnedSyst) {
+    TF1 *RelSystpXi;
+    RelSystpXi=(TF1*)file_sys_pXi->Get("RelSysPXiUnbinned");
+    int nBinsX = hist_CF_pXi_ApAXi_exp[2]->GetNbinsX();
+    float minX = hist_CF_pXi_ApAXi_exp[2]->GetXaxis()->GetXmin();
+    float maxX = hist_CF_pXi_ApAXi_exp[2]->GetXaxis()->GetXmax();
+    hist_sys_pXi=new TH1F("UnbinnedSystpXi","UnbinnedSystpXi",nBinsX,minX,maxX);
+    int binMax=hist_CF_pXi_ApAXi_exp[2]->FindBin(500);
+    for (int iBin = 1; iBin< binMax; iBin++) {
+      const float x = hist_CF_pXi_ApAXi_exp[2]->GetBinCenter(iBin);
+      const float y = hist_CF_pXi_ApAXi_exp[2]->GetBinContent(iBin);
+      hist_sys_pXi->SetBinContent(iBin,y * RelSystpXi->Eval(x/1000));
+    }
+    hist_sys_pXi->SetLineWidth(2.0);
+  } else {
+    hist_sys_pXi = (TH1F*)file_sys_pXi->Get("C2totalsysPXi");
+    hist_sys_pXi->SetLineWidth(2.0);
+  }
   // Sim DATA
-  TFile* _file0sim=TFile::Open(simfile);
+  TFile* _fileSimPP=TFile::Open(Form("%s/CFOutput_pp_Rebin_1.root",baseDirSim));
+  TFile* _fileSimPL=TFile::Open(Form("%s/CFOutput_pL_Rebin_%d.root",baseDirSim,RebinCF));
+  TFile* _fileSimLL=TFile::Open(Form("%s/CFOutput_LL_Rebin_%d.root",baseDirSim,RebinCF));
+  TFile* _fileSimPXi=TFile::Open(Form("%s/CFOutput_pXi_Rebin_%d.root",baseDirSim,RebinCF));
+
+  TH1F *hist_CF_pp_ApAp_sim[3];
   TH1F *hist_CF_Lp_ALAp_sim[3];
   TH1F *hist_CF_LL_ALAL_sim[3];
-  TH1F *hist_CF_pp_ApAp_sim[3];
   TH1F *hist_CF_pXi_ApAXi_sim[3];
-  if(_file0sim) {
-    TDirectoryFile *dirSimResults=(TDirectoryFile*)(_file0sim->FindObjectAny(Form("%sResults%s", prefixSim, addonSim)));
-    TList *SimResults;
-    dirSimResults->GetObject(Form("%sResults%s", prefixSim, addonSim),SimResults);
-    tmpFolder=(TList*)SimResults->FindObject("Particle0_Particle0");
-    TH1F* histRE_relK_ppsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle0");
-    TH1F* histME_relK_ppsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle0");
-    tmpFolder=(TList*)SimResults->FindObject("Particle1_Particle1");
-    TH1F* histRE_relK_ApApsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle1");
-    TH1F* histME_relK_ApApsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle1");
-    tmpFolder=(TList*)SimResults->FindObject("Particle0_Particle2");
-    TH1F* histRE_relK_Lpsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle2");
-    TH1F* histME_relK_Lpsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle2");
-    tmpFolder=(TList*)SimResults->FindObject("Particle1_Particle3");
-    TH1F* histRE_relK_ALApsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle3");
-    TH1F* histME_relK_ALApsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle3");
-    tmpFolder=(TList*)SimResults->FindObject("Particle2_Particle2");
-    TH1F* histRE_relK_LLsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle2_Particle2");
-    TH1F* histME_relK_LLsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle2_Particle2");
-    tmpFolder=(TList*)SimResults->FindObject("Particle3_Particle3");
-    TH1F* histRE_relK_ALALsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle3_Particle3");
-    TH1F* histME_relK_ALALsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle3_Particle3");
-    tmpFolder=(TList*)SimResults->FindObject("Particle0_Particle4");
-    TH1F* histRE_relK_Xipsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle0_Particle4");
-    TH1F* histME_relK_Xipsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle0_Particle4");
-    tmpFolder=(TList*)SimResults->FindObject("Particle1_Particle5");
-    TH1F* histRE_relK_AXiApsim = (TH1F*)tmpFolder->FindObject("SEDist_Particle1_Particle5");
-    TH1F* histME_relK_AXiApsim = (TH1F*)tmpFolder->FindObject("MEDist_Particle1_Particle5");
+  if(_fileSimPP&&_fileSimPL&&_fileSimLL&&_fileSimPXi) {
+    hist_CF_pp_ApAp_sim[0] = (TH1F*)_fileSimPP->Get("hCkPartNorm");
+    hist_CF_pp_ApAp_sim[1] = (TH1F*)_fileSimPP->Get("hCkAntiPartNorm");
+    hist_CF_pp_ApAp_sim[2] = (TH1F*)_fileSimPP->Get("hCkTotNormWeight");
 
-    hist_CF_Lp_ALAp_sim[0] = Calculate_CF(histRE_relK_Lpsim,histME_relK_Lpsim,"hist_CF_Lp_sim",normleft,normright, addonSim, spinningDepth);
-    hist_CF_Lp_ALAp_sim[1] = Calculate_CF(histRE_relK_ALApsim,histME_relK_ALApsim,"hist_CF_ALAp_sim",normleft,normright, addonSim, spinningDepth);
-    hist_CF_Lp_ALAp_sim[2] = add_CF(hist_CF_Lp_ALAp_sim[0],hist_CF_Lp_ALAp_sim[1],"hist_CF_Lp_ALAp_sim_sum");
-    hist_CF_LL_ALAL_sim[0] = Calculate_CF(histRE_relK_LLsim,histME_relK_LLsim,"hist_CF_LL_sim",normleft,normright, addonSim, spinningDepth);
-    hist_CF_LL_ALAL_sim[1] = Calculate_CF(histRE_relK_ALALsim,histME_relK_ALALsim,"hist_CF_LL_sim",normleft,normright, addonSim, spinningDepth);
-    hist_CF_LL_ALAL_sim[2] = add_CF(hist_CF_LL_ALAL_sim[0],hist_CF_LL_ALAL_sim[1],"hist_CF_LL_ALAL_sim_sum");
-    hist_CF_pp_ApAp_sim[0] = Calculate_CF(histRE_relK_ppsim,histME_relK_ppsim,"hist_CF_ppsim",normleft,normright, addonSim, spinningDepth);
-    hist_CF_pp_ApAp_sim[1] = Calculate_CF(histRE_relK_ApApsim,histME_relK_ApApsim,"hist_CF_ApApsim",normleft,normright, addonSim, spinningDepth);
-    hist_CF_pp_ApAp_sim[2] = add_CF(hist_CF_pp_ApAp_sim[0],hist_CF_pp_ApAp_sim[1],"hist_CF_pp_ApAp_sim_sum");
-    hist_CF_pXi_ApAXi_sim[0] = Calculate_CF(histRE_relK_Xipsim,histME_relK_Xipsim,"hist_CF_pXisim",normleft,normright, addonSim, spinningDepth);
-    hist_CF_pXi_ApAXi_sim[1] = Calculate_CF(histRE_relK_AXiApsim,histME_relK_AXiApsim,"hist_CF_ApAXisim",normleft,normright, addonSim, spinningDepth);
-    hist_CF_pXi_ApAXi_sim[2] = add_CF(hist_CF_pXi_ApAXi_sim[0],hist_CF_pXi_ApAXi_sim[1],"hist_CF_pXi_ApAXi_sim_sum");
+    hist_CF_Lp_ALAp_sim[0] = (TH1F*)_fileSimPL->Get("hCkPartNorm");
+    hist_CF_Lp_ALAp_sim[1] = (TH1F*)_fileSimPL->Get("hCkAntiPartNorm");
+    hist_CF_Lp_ALAp_sim[2] = (TH1F*)_fileSimPL->Get("hCkTotNormWeight");
+
+    hist_CF_LL_ALAL_sim[0] = (TH1F*)_fileSimLL->Get("hCkPartNorm");
+    hist_CF_LL_ALAL_sim[1] = (TH1F*)_fileSimLL->Get("hCkAntiPartNorm");
+    hist_CF_LL_ALAL_sim[2] = (TH1F*)_fileSimLL->Get("hCkTotNormWeight");
+
+    hist_CF_pXi_ApAXi_sim[0] = (TH1F*)_fileSimPXi->Get("hCkPartNormShifted");
+    hist_CF_pXi_ApAXi_sim[1] = (TH1F*)_fileSimPXi->Get("hCkAntiPartNormShifted");
+    hist_CF_pXi_ApAXi_sim[2] = (TH1F*)_fileSimPXi->Get("hCkTotNormWeight_Shifted");
     SetStyleHisto(hist_CF_pp_ApAp_sim[2], 1,2);
     SetStyleHisto(hist_CF_Lp_ALAp_sim[2], 1,2);
     SetStyleHisto(hist_CF_LL_ALAL_sim[2], 1,2);
@@ -549,10 +580,10 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   grFakeXiCoulomb->SetLineWidth(4);
 
   // BASELINE
-  TF1 *baselinePP = new TF1("baselinePP", "pol1", 0, 1);
-  TF1 *baselinePL = new TF1("baselinePL", "pol1", 0, 1);
-  TF1 *baselineLL = new TF1("baselineLL", "pol1", 0, 1);
-  TF1 *baselinePXI = new TF1("baselinePXI", "pol1", 0, 1);
+  TF1 *baselinePP = new TF1("baselinePP", "pol1", 0, 1000);
+  TF1 *baselinePL = new TF1("baselinePL", "pol1", 0, 1000);
+  TF1 *baselineLL = new TF1("baselineLL", "pol1", 0, 1000);
+  TF1 *baselinePXI = new TF1("baselinePXI", "pol1", 0, 1000);
   baselinePP->SetParameter(0, ppBL0);
   baselinePP->SetParameter(1, ppBL1);
   baselinePL->SetParameter(0, pLBL0);
@@ -578,10 +609,10 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Can_CF->cd(1)->SetTopMargin(top);
   hist_CF_pp_ApAp_exp[0]->Draw("pe");
   hist_CF_pp_ApAp_exp[1]->Draw("pe same");
-  hist_CF_pp_ApAp_exp[0]->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
-  hist_CF_pp_ApAp_exp[0]->GetXaxis()->SetRangeUser(0, 0.4);
+  hist_CF_pp_ApAp_exp[0]->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)");
+  hist_CF_pp_ApAp_exp[0]->GetXaxis()->SetRangeUser(0, 400);
   hist_CF_pp_ApAp_exp[0]->GetYaxis()->SetRangeUser(0, 4);
-  auto* leg= new TLegend(0.18, 0.7, 0.55, 0.85);
+  auto* leg= new TLegend(0.25, 0.7, 0.95, 0.95);
   leg->AddEntry(hist_CF_pp_ApAp_exp[0], "Particle-particle CF", "pe");
   leg->AddEntry(hist_CF_pp_ApAp_exp[1], "Antiparticle-antiparticle CF", "pe");
   leg->Draw("same");
@@ -590,8 +621,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Can_CF->cd(2)->SetTopMargin(top);
   hist_CF_Lp_ALAp_exp[0]->Draw("pe");
   hist_CF_Lp_ALAp_exp[1]->Draw("pe same");
-  hist_CF_Lp_ALAp_exp[0]->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
-  hist_CF_Lp_ALAp_exp[0]->GetXaxis()->SetRangeUser(0, 0.4);
+  hist_CF_Lp_ALAp_exp[0]->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)");
+  hist_CF_Lp_ALAp_exp[0]->GetXaxis()->SetRangeUser(0, 400);
   hist_CF_Lp_ALAp_exp[0]->GetXaxis()->SetNdivisions(505);
   hist_CF_Lp_ALAp_exp[0]->GetYaxis()->SetRangeUser(0.8, 2.5);
   Can_CF->cd(3);
@@ -599,8 +630,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Can_CF->cd(3)->SetTopMargin(top);
   hist_CF_LL_ALAL_exp[0]->Draw("pe");
   hist_CF_LL_ALAL_exp[1]->Draw("pe same");
-  hist_CF_LL_ALAL_exp[0]->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
-  hist_CF_LL_ALAL_exp[0]->GetXaxis()->SetRangeUser(0, 0.4);
+  hist_CF_LL_ALAL_exp[0]->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)");
+  hist_CF_LL_ALAL_exp[0]->GetXaxis()->SetRangeUser(0, 400);
   hist_CF_LL_ALAL_exp[0]->GetXaxis()->SetNdivisions(505);
   hist_CF_LL_ALAL_exp[0]->GetYaxis()->SetRangeUser(0.25, 3);
   Can_CF->cd(4);
@@ -608,8 +639,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Can_CF->cd(4)->SetTopMargin(top);
   hist_CF_pXi_ApAXi_exp[0]->Draw("pe");
   hist_CF_pXi_ApAXi_exp[1]->Draw("pe same");
-  hist_CF_pXi_ApAXi_exp[0]->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
-  hist_CF_pXi_ApAXi_exp[0]->GetXaxis()->SetRangeUser(0, 0.4);
+  hist_CF_pXi_ApAXi_exp[0]->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)");
+  hist_CF_pXi_ApAXi_exp[0]->GetXaxis()->SetRangeUser(0, 400);
   hist_CF_pXi_ApAXi_exp[0]->GetXaxis()->SetNdivisions(505);
   hist_CF_pXi_ApAXi_exp[0]->GetYaxis()->SetRangeUser(0.25, 3);
   Can_CF->cd(5);
@@ -622,7 +653,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   line->SetLineStyle(2);
   ppRatio->Divide(hist_CF_pp_ApAp_exp[1]);
   ppRatio->GetYaxis()->SetRangeUser(0,2);
-  ppRatio->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)_{pp}/#it{C}(k*)_{#bar{pp}}");
+  ppRatio->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)_{pp}/#it{C}(k*)_{#bar{pp}}");
   ppRatio->SetMarkerStyle(fMarkers[2]);
   ppRatio->Draw("pe");
   line->Draw("same");
@@ -631,7 +662,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Can_CF->cd(6)->SetTopMargin(top);
   TH1F *pLRatio = (TH1F*)hist_CF_Lp_ALAp_exp[0]->Clone();
   pLRatio->Divide(hist_CF_Lp_ALAp_exp[1]);
-  pLRatio->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)_{p#Lambda}/#it{C}(k*)_{#bar{p}#bar{#Lambda}}");
+  pLRatio->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)_{p#Lambda}/#it{C}(k*)_{#bar{p}#bar{#Lambda}}");
   pLRatio->GetYaxis()->SetRangeUser(0,2);
   pLRatio->SetMarkerStyle(fMarkers[2]);
   pLRatio->Draw("pe");
@@ -641,7 +672,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Can_CF->cd(7)->SetTopMargin(top);
   TH1F *LLRatio = (TH1F*)hist_CF_LL_ALAL_exp[0]->Clone();
   LLRatio->Divide(hist_CF_LL_ALAL_exp[1]);
-  LLRatio->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)_{#Lambda#Lambda}/#it{C}(k*)_{#bar{#Lambda}#bar{#Lambda}}");
+  LLRatio->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)_{#Lambda#Lambda}/#it{C}(k*)_{#bar{#Lambda}#bar{#Lambda}}");
   LLRatio->GetYaxis()->SetRangeUser(0,2);
   LLRatio->SetMarkerStyle(fMarkers[2]);
   LLRatio->Draw("pe");
@@ -651,24 +682,39 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Can_CF->cd(8)->SetTopMargin(top);
   TH1F *pXiRatio = (TH1F*)hist_CF_pXi_ApAXi_exp[0]->Clone();
   pXiRatio->Divide(hist_CF_pXi_ApAXi_exp[1]);
-  pXiRatio->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)_{p#Xi^{-}}/#it{C}(k*)_{#bar{p}#Xi^{+}}");
+  pXiRatio->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)_{p#Xi^{-}}/#it{C}(k*)_{#bar{p}#Xi^{+}}");
   pXiRatio->GetYaxis()->SetRangeUser(0,2);
   pXiRatio->SetMarkerStyle(fMarkers[2]);
   pXiRatio->Draw("pe");
   line->Draw("same");
   Can_CF->Print("ANplot/CF_pp-apap.pdf");
 
+  TCanvas *Can_CF_DataToBL = new TCanvas("Can_CF_pLambda","Can_CF_pLambda",0,0,1100,1000);
+  Can_CF_DataToBL->Divide(2,2);
+  Can_CF_DataToBL->cd(1);
+  hist_CF_pp_ApAp_exp[2]->DrawCopy();
+  baselinePP->Draw("same");
+  Can_CF_DataToBL->cd(2);
+  hist_CF_Lp_ALAp_exp[2]->DrawCopy();
+  baselinePL->Draw("same");
+  Can_CF_DataToBL->cd(3);
+  hist_CF_LL_ALAL_exp[2]->DrawCopy();
+  baselineLL->Draw("same");
+  Can_CF_DataToBL->cd(4);
+  hist_CF_pXi_ApAXi_exp[2]->DrawCopy();
+  baselinePXI->Draw("same");
+
   TCanvas *Can_CF_fitting = new TCanvas("Can_CF_fitting","Can_CF_fitting",0,0,1100,1000);
   Can_CF_fitting->Divide(2,2);
   Can_CF_fitting->cd(1);
   Can_CF_fitting->cd(1)->SetRightMargin(right);
   Can_CF_fitting->cd(1)->SetTopMargin(top);
-  TGraphErrors *Tgraph_syserror_pp_ApAp = DrawSystematicError(hist_CF_pp_ApAp_exp[2], hist_sys_pp, 0.002);
+  TGraphErrors *Tgraph_syserror_pp_ApAp = DrawSystematicError(hist_CF_pp_ApAp_exp[2], hist_sys_pp, 2);
   Tgraph_syserror_pp_ApAp->SetLineColor(kWhite);
   Tgraph_syserror_pp_ApAp->Draw("Ap");
   baselinePP->Draw("same");
-  Tgraph_syserror_pp_ApAp->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
-  Tgraph_syserror_pp_ApAp->GetXaxis()->SetRangeUser(0, 0.125);
+  Tgraph_syserror_pp_ApAp->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)");
+  Tgraph_syserror_pp_ApAp->GetXaxis()->SetRangeUser(0,125);
   Tgraph_syserror_pp_ApAp->GetYaxis()->SetRangeUser(0.5, 3.5);
   if(grFemtopp) grFemtopp->Draw("L3 same");
   Tgraph_syserror_pp_ApAp->SetFillColorAlpha(kBlack, 0.4);
@@ -697,12 +743,12 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Can_CF_fitting->cd(2);
   Can_CF_fitting->cd(2)->SetRightMargin(right);
   Can_CF_fitting->cd(2)->SetTopMargin(top);
-  TGraphErrors *Tgraph_syserror_pL_ApAL = DrawSystematicError(hist_CF_Lp_ALAp_exp[2], hist_sys_pL, 0.005);
+  TGraphErrors *Tgraph_syserror_pL_ApAL = DrawSystematicError(hist_CF_Lp_ALAp_exp[2], hist_sys_pL, 5);
   Tgraph_syserror_pL_ApAL->SetLineColor(kWhite);
   Tgraph_syserror_pL_ApAL->Draw("ap");
   baselinePL->Draw("same");
-  Tgraph_syserror_pL_ApAL->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
-  Tgraph_syserror_pL_ApAL->GetXaxis()->SetRangeUser(0, 0.2);
+  Tgraph_syserror_pL_ApAL->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)");
+  Tgraph_syserror_pL_ApAL->GetXaxis()->SetRangeUser(0, 200);
   Tgraph_syserror_pL_ApAL->GetXaxis()->SetNdivisions(505);
   Tgraph_syserror_pL_ApAL->GetYaxis()->SetRangeUser(0.8, 2.);
   if(grFemtopLNLO) grFemtopLNLO->Draw("l3 same");
@@ -734,12 +780,12 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Can_CF_fitting->cd(3);
   Can_CF_fitting->cd(3)->SetRightMargin(right);
   Can_CF_fitting->cd(3)->SetTopMargin(top);
-  TGraphErrors *Tgraph_syserror_LL_ALAL = DrawSystematicError(hist_CF_LL_ALAL_exp[2], hist_sys_LL, 0.005);
+  TGraphErrors *Tgraph_syserror_LL_ALAL = DrawSystematicError(hist_CF_LL_ALAL_exp[2], hist_sys_LL, 5);
   Tgraph_syserror_LL_ALAL->SetLineColor(kWhite);
   Tgraph_syserror_LL_ALAL->Draw("ap");
   baselineLL->Draw("same");
-  Tgraph_syserror_LL_ALAL->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
-  Tgraph_syserror_LL_ALAL->GetXaxis()->SetRangeUser(0, 0.2);
+  Tgraph_syserror_LL_ALAL->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)");
+  Tgraph_syserror_LL_ALAL->GetXaxis()->SetRangeUser(0, 200);
   Tgraph_syserror_LL_ALAL->GetXaxis()->SetNdivisions(505);
   Tgraph_syserror_LL_ALAL->GetYaxis()->SetRangeUser(0.35, 2.);
   if(grFemtoLL) grFemtoLL->Draw("l3 same");
@@ -762,12 +808,12 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Can_CF_fitting->cd(4);
   Can_CF_fitting->cd(4)->SetRightMargin(right);
   Can_CF_fitting->cd(4)->SetTopMargin(top);
-  TGraphErrors *Tgraph_syserror_pXi_ApAXi = DrawSystematicError(hist_CF_pXi_ApAXi_exp[2], hist_sys_pXi, 0.005);
+  TGraphErrors *Tgraph_syserror_pXi_ApAXi = DrawSystematicError(hist_CF_pXi_ApAXi_exp[2], hist_sys_pXi, 5);
   Tgraph_syserror_pXi_ApAXi->SetLineColor(kWhite);
   Tgraph_syserror_pXi_ApAXi->Draw("ap");
   baselinePXI->Draw("same");
-  Tgraph_syserror_pXi_ApAXi->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
-  Tgraph_syserror_pXi_ApAXi->GetXaxis()->SetRangeUser(0, 0.2);
+  Tgraph_syserror_pXi_ApAXi->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)");
+  Tgraph_syserror_pXi_ApAXi->GetXaxis()->SetRangeUser(0, 200);
   Tgraph_syserror_pXi_ApAXi->GetXaxis()->SetNdivisions(505);
   Tgraph_syserror_pXi_ApAXi->GetYaxis()->SetRangeUser(0.75, 3.);
   Tgraph_syserror_pXi_ApAXi->SetFillColorAlpha(kBlack, 0.4);
@@ -795,11 +841,11 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
 
 
   // Compare to Pythia
-  if(_file0sim) {
-    auto* grDummy1 = new TH1F("hDummy1", "; k* (GeV/#it{c}); #it{C}(k*)", 100, 0,2);
-    auto* grDummy2 = new TH1F("hDummy2", "; k* (GeV/#it{c}); #it{C}(k*)", 100, 0,2);
-    auto* grDummy3 = new TH1F("hDummy3", "; k* (GeV/#it{c}); #it{C}(k*)", 100, 0,2);
-    auto* grDummy4 = new TH1F("hDummy4", "; k* (GeV/#it{c}); #it{C}(k*)", 100, 0,2);
+  if(_fileSimPP&&_fileSimPL&&_fileSimLL&&_fileSimPXi) {
+    auto* grDummy1 = new TH1F("hDummy1", "; k* (MeV/#it{c}); #it{C}(k*)", 100, 0,2000);
+    auto* grDummy2 = new TH1F("hDummy2", "; k* (MeV/#it{c}); #it{C}(k*)", 100, 0,2000);
+    auto* grDummy3 = new TH1F("hDummy3", "; k* (MeV/#it{c}); #it{C}(k*)", 100, 0,2000);
+    auto* grDummy4 = new TH1F("hDummy4", "; k* (MeV/#it{c}); #it{C}(k*)", 100, 0,2000);
 
     TCanvas *Can_CF_Pythia= new TCanvas("Can_CF_Pythia","Can_CF_Pythia",0,0,1000,1100);
     Can_CF_Pythia->Divide(2,2);
@@ -852,7 +898,7 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
     grDummy3->Draw();
     grDummy3->GetYaxis()->SetRangeUser(0.25, 3);
     hist_CF_LL_ALAL_sim[2]->Rebin(rebin);
-    hist_CF_LL_ALAL_sim[2]->Scale(1/rebin);
+    hist_CF_LL_ALAL_sim[2]->Scale(1/(rebin));
     hist_CF_LL_ALAL_sim[2]->Draw("pe same");
     auto *hist_LL_exp = (TH1F*)hist_CF_LL_ALAL_exp[2]->Clone("LL");
     hist_LL_exp->Rebin(rebin);
@@ -901,8 +947,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Tgraph_syserror_pp_ApAp->SetLineColor(kWhite);
   Tgraph_syserror_pp_ApAp->Draw("Ap");
   baselinePP->Draw("same");
-  Tgraph_syserror_pp_ApAp->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
-  Tgraph_syserror_pp_ApAp->GetXaxis()->SetRangeUser(0, 0.125);
+  Tgraph_syserror_pp_ApAp->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)");
+  Tgraph_syserror_pp_ApAp->GetXaxis()->SetRangeUser(0, 125);
   Tgraph_syserror_pp_ApAp->GetYaxis()->SetRangeUser(0.5, 3.5);
   if(grFemtopp) grFemtopp->Draw("L3 same");
   Tgraph_syserror_pp_ApAp->SetFillColorAlpha(kBlack, 0.4);
@@ -936,8 +982,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Tgraph_syserror_pL_ApAL->SetLineColor(kWhite);
   Tgraph_syserror_pL_ApAL->Draw("ap");
   baselinePL->Draw("same");
-  Tgraph_syserror_pL_ApAL->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
-  Tgraph_syserror_pL_ApAL->GetXaxis()->SetRangeUser(0, 0.2);
+  Tgraph_syserror_pL_ApAL->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)");
+  Tgraph_syserror_pL_ApAL->GetXaxis()->SetRangeUser(0, 200);
   Tgraph_syserror_pL_ApAL->GetXaxis()->SetNdivisions(505);
   Tgraph_syserror_pL_ApAL->GetYaxis()->SetRangeUser(0.8, 2.);
   if(grFemtopLNLO) grFemtopLNLO->Draw("l3 same");
@@ -974,8 +1020,8 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Tgraph_syserror_LL_ALAL->SetLineColor(kWhite);
   Tgraph_syserror_LL_ALAL->Draw("ap");
   baselineLL->Draw("same");
-  Tgraph_syserror_LL_ALAL->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
-  Tgraph_syserror_LL_ALAL->GetXaxis()->SetRangeUser(0, 0.2);
+  Tgraph_syserror_LL_ALAL->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)");
+  Tgraph_syserror_LL_ALAL->GetXaxis()->SetRangeUser(0, 200);
   Tgraph_syserror_LL_ALAL->GetXaxis()->SetNdivisions(505);
   Tgraph_syserror_LL_ALAL->GetYaxis()->SetRangeUser(0.35, 2.);
   if(grFemtoLL) grFemtoLL->Draw("l3 same");
@@ -1005,10 +1051,10 @@ void plotCF(const char *expfile = "~/Results/LHC17p_fast/AnalysisResults.root", 
   Tgraph_syserror_pXi_ApAXi->SetLineColor(kWhite);
   Tgraph_syserror_pXi_ApAXi->Draw("ap");
   baselinePXI->Draw("same");
-  Tgraph_syserror_pXi_ApAXi->SetTitle("; k* (GeV/#it{c}); #it{C}(k*)");
-  Tgraph_syserror_pXi_ApAXi->GetXaxis()->SetRangeUser(0, 0.2);
+  Tgraph_syserror_pXi_ApAXi->SetTitle("; k* (MeV/#it{c}); #it{C}(k*)");
+  Tgraph_syserror_pXi_ApAXi->GetXaxis()->SetRangeUser(0, 200);
   Tgraph_syserror_pXi_ApAXi->GetXaxis()->SetNdivisions(505);
-  Tgraph_syserror_pXi_ApAXi->GetYaxis()->SetRangeUser(0.75, 5.);
+  Tgraph_syserror_pXi_ApAXi->GetYaxis()->SetRangeUser(0.75, 3.5);
   Tgraph_syserror_pXi_ApAXi->SetFillColorAlpha(kBlack, 0.4);
   if(grFemtopXi) grFemtopXi->Draw("l3 same");
   if(grFemtopXiCoulomb) grFemtopXiCoulomb->Draw("l3 same");

@@ -95,15 +95,15 @@ void SetStyle(bool graypalette, bool title)
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void SetStyleHisto(TH1 *histo, int marker, int color)
 {
-  histo->GetXaxis()->SetLabelSize(0.045);
-  histo->GetXaxis()->SetTitleSize(0.05);
+  histo->GetXaxis()->SetLabelSize(0.06);
+  histo->GetXaxis()->SetTitleSize(0.07);
   histo->GetXaxis()->SetLabelOffset(0.01);
-  histo->GetXaxis()->SetTitleOffset(1.2);
+  histo->GetXaxis()->SetTitleOffset(1.0);
   histo->GetXaxis()->SetLabelFont(42);
-  histo->GetYaxis()->SetLabelSize(0.045);
-  histo->GetYaxis()->SetTitleSize(0.05);
+  histo->GetYaxis()->SetLabelSize(0.06);
+  histo->GetYaxis()->SetTitleSize(0.07);
   histo->GetYaxis()->SetLabelOffset(0.02);
-  histo->GetYaxis()->SetTitleOffset(1.2);
+  histo->GetYaxis()->SetTitleOffset(1.0);
   histo->SetMarkerStyle(20);
   histo->SetMarkerColor(color);
   histo->SetLineColor(color);
@@ -149,8 +149,7 @@ void FitLambda(TH1F* histo, float &signal, float
                              fSignalSingleGauss->GetParameter(1)+fSignalSingleGauss->GetParameter(2));
   fSignalGauss->SetParameter(5, 0.5*fSignalSingleGauss->GetParameter(2));
   fSignalGauss->SetParLimits(5, 0.5*fSignalSingleGauss->GetParameter(2),1e2*2.f*fSignalSingleGauss->GetParameter(2));
-  TFitResultPtr r = signalOnly->Fit("fSignalGauss", "SRQ0", "", 1.29,
-                                    1.38);
+  TFitResultPtr r = signalOnly->Fit("fSignalGauss", "SRQ0", "", 1.29,1.38);
 
   // Extract signal as integral
   signal = fSignalGauss->Integral(lowerBound, upperBound)
@@ -197,7 +196,7 @@ void FitLambda(TH1F* histo, float &signal, float
 void PlotXi(TString fileName, const char *prefix) {
   SetStyle(false,false);
   TH1F* xiPt[13];
-
+  TGaxis::SetMaxDigits(2);
   TH2F* xiMass2D;
   TH1F* xiMass;
   TFile *file=TFile::Open(fileName.Data());
@@ -209,7 +208,7 @@ void PlotXi(TString fileName, const char *prefix) {
   TCanvas *Xi= new TCanvas("Xi","Xi",0,0,1500,1100);
   TCanvas *PtXi= new TCanvas("PtXi","PtXi",0,0,1500,1100);
   TH1F *Purity=0;
-  PtXi->Divide(4,4);
+  PtXi->Divide(4,3);
   if (dirExp) {
     TList *tmp=dirExp->GetListOfKeys();
     TString name=tmp->At(0)->GetName();
@@ -223,31 +222,29 @@ void PlotXi(TString fileName, const char *prefix) {
     if(!Cascade) {
       std::cout << "No Cascade \n";
     }
-    xiMass2D=(TH2F*)Cascade->FindObject("InvMassXiPt");
-    xiMass=(TH1F*)xiMass2D->ProjectionY("InvMassXi");
-    Purity=new TH1F("Purity","Purity",13,xiMass2D->GetXaxis()->GetBinLowEdge(1),xiMass2D->GetXaxis()->GetBinUpEdge(13));
-    std::cout << xiMass2D->GetXaxis()->GetBinLowEdge(1) << '\t' << xiMass2D->GetXaxis()->GetBinUpEdge(21);
-    for (int iBin = 0; iBin<13; ++iBin) {
-      TPad *padPt=(TPad*)PtXi->cd(1+iBin);
+    xiMass2D=(TH2F*)Cascade->FindObject("InvMassXi");
+    xiMass=(TH1F*)xiMass2D->ProjectionY("InvMassXioneBin");
+    Purity=new TH1F("Purity","Purity",14,xiMass2D->GetXaxis()->GetBinLowEdge(1),xiMass2D->GetXaxis()->GetBinUpEdge(13));
+    std::cout << xiMass2D->GetXaxis()->GetBinLowEdge(1) << '\t' << xiMass2D->GetXaxis()->GetBinUpEdge(13);
+    for (int iBin = 1; iBin<13; ++iBin) {
+      TPad *padPt=(TPad*)PtXi->cd(iBin);
       padPt->SetRightMargin(0.0);
-      padPt->SetTopMargin(0.005);
+      padPt->SetTopMargin(0.065);
       padPt->SetBottomMargin(0.15);
-      padPt->SetLeftMargin(0.05);
+      padPt->SetLeftMargin(0.09);
       padPt->Draw();
       TString XiNamePt=Form("XiPt_%i",iBin);
-      xiPt[iBin]=(TH1F*)xiMass2D->ProjectionY(XiNamePt.Data(),iBin+1,iBin+2);
-
+      xiPt[iBin]=(TH1F*)xiMass2D->ProjectionY(XiNamePt.Data(),iBin+1,iBin+1);
       SetStyleHisto(xiPt[iBin],2,1);
       xiPt[iBin]->GetXaxis()->SetRangeUser(1.285,1.345);
       xiPt[iBin]->GetXaxis()->SetTitle("M_{#pi#Lambda} (GeV/#it{c}^{2})");
+      xiPt[iBin]->DrawCopy();
       float signal=0;
       float signalErr=0;
       float background=0;
       float backgroundErr=0;
       float lowerBound=1.322-0.005;
       float upperBound=1.322+0.005;
-      //  xiMass->DrawCopy();
-      //  SetStyle(false,false);
       FitLambda(xiPt[iBin], signal, signalErr, background, backgroundErr, lowerBound,upperBound);
 
       TList *funListLambda = xiPt[iBin]->GetListOfFunctions();
@@ -266,7 +263,7 @@ void PlotXi(TString fileName, const char *prefix) {
       TLatex LambdaLabel;
       LambdaLabel.SetNDC(kTRUE);
       LambdaLabel.SetTextSize(gStyle->GetTextSize()*1.2);
-      LambdaLabel.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.39,
+      LambdaLabel.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.45,
                             Form("#splitline{#splitline{#splitline{#splitline{%.2f < p_{T} < %.2f}{#Xi^{-}: %.0f}}{m_{#Xi} = %.1fMeV/#it{c}^{2}}}{#sigma_{#Xi}= %.1fMeV/#it{c}^{2}}}{Purity = %.1f %%}",
                                  xiMass2D->GetXaxis()->GetBinCenter(iBin+1),xiMass2D->GetXaxis()->GetBinCenter(iBin+2),
                                  signal, meanMass*1000.f, meanWidth*1000.f,
@@ -290,8 +287,8 @@ void PlotXi(TString fileName, const char *prefix) {
   float lowerBound=1.322-0.005;
   float upperBound=1.322+0.005;
 
-  //  xiMass->DrawCopy();
-  //  SetStyle(false,false);
+//  xiMass->DrawCopy();
+//  SetStyle(false,false);
   Xi->cd();
   FitLambda(xiMass, signal, signalErr, background, backgroundErr, lowerBound,upperBound);
 
@@ -318,7 +315,7 @@ void PlotXi(TString fileName, const char *prefix) {
   TLatex BeamTextLambda;
   BeamTextLambda.SetNDC(kTRUE);
   BeamTextLambda.DrawLatex(gPad->GetUxmax()-0.8, gPad->GetUymax()-0.2,
-                           "p-p (2017) #sqrt{#it{s}} = 13 TeV");
+                           "p-Pb (2016) #sqrt{#it{s_{NN}}} = 5.02 TeV");
   //  TH1F *dummy=new TH1F("dummy","dummy",9,0.6,7.121051);//,10,xiMass2D->GetXaxis()->GetBinLowEdge(1),xiMass2D->GetXaxis()->GetBinUpEdge(21));
   //  dummy->GetXaxis()->SetTitle("P_{T} (GeV/#it{c})");
   //  dummy->GetYaxis()->SetTitle("Purity");
@@ -332,10 +329,11 @@ void PlotXi(TString fileName, const char *prefix) {
   //  Purity->SetMarkerStyle(20);
   //  Purity->SetMarkerSize(2);
   Purity->GetYaxis()->SetRangeUser(80,100);
-  Purity->SetTitle(";P_{T} (GeV/#it{c});Purity");
+  Purity->SetTitle(";P_{T} (GeV/#it{c});Purity (%)");
   Purity->SetStats(0);
   Purity->GetYaxis()->SetTitleOffset(1.);
   Purity->GetXaxis()->SetTitleOffset(.9);
   //  dummy->DrawCopy();
+//  TGaxis::SetMaxDigits(4);
   Purity->DrawCopy("p");
 }

@@ -95,14 +95,14 @@ void SetStyle(bool graypalette, bool title)
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void SetStyleHisto(TH1 *histo, int marker, int color)
 {
-  histo->GetXaxis()->SetLabelSize(0.045);
-  histo->GetXaxis()->SetTitleSize(0.05);
-  histo->GetXaxis()->SetLabelOffset(0.01);
+  histo->GetXaxis()->SetLabelSize(0.09);
+  histo->GetXaxis()->SetTitleSize(0.06);
+  histo->GetXaxis()->SetLabelOffset(0.02);
   histo->GetXaxis()->SetTitleOffset(1.2);
   histo->GetXaxis()->SetLabelFont(42);
-  histo->GetYaxis()->SetLabelSize(0.045);
-  histo->GetYaxis()->SetTitleSize(0.05);
-  histo->GetYaxis()->SetLabelOffset(0.01);
+  histo->GetYaxis()->SetLabelSize(0.065);
+  histo->GetYaxis()->SetTitleSize(0.06);
+  histo->GetYaxis()->SetLabelOffset(0.02);
   histo->GetYaxis()->SetTitleOffset(1.2);
   histo->SetMarkerStyle(20);
   histo->SetMarkerColor(color);
@@ -114,7 +114,7 @@ void SetStyleHisto(TH1 *histo, int marker, int color)
 // second order polynomial + double gaus to Lambda peak
 void FitLambda(TH1F* histo, float &signal, float &signalErr, float &background, float &backgroundErr, float lowerBound, float upperBound)
 {
-  histo->Sumw2();
+//  histo->Sumw2();
   // Fit Background with second order polynomial, excluding Mlambda +/- 10 MeV
   TF1 *fBackground = new TF1("fBackground", [&](double *x, double *p) { if (x[0] > 1.1075 && x[0] < 1.1235) {TF1::RejectPoint(); return (double)0; } return p[0] + p[1]*x[0] + p[2]*x[0]*x[0]; }, 1.095, 1.15, 3);
   TFitResultPtr backgroundR = histo->Fit("fBackground", "SRQ0", "", 1.095, 1.15);
@@ -127,7 +127,7 @@ void FitLambda(TH1F* histo, float &signal, float &signalErr, float &background, 
 
   // remove background from signal
   TH1F *signalOnly = getSignalHisto(fBackground2, histo, 1.0, 1.3, Form("%s_signal_only", histo->GetName()));
-  signalOnly->Sumw2();
+//  signalOnly->Sumw2();
   signalOnly->Draw("same");
 
   // fit signal only
@@ -185,80 +185,82 @@ void FitXi(TH1F* histo, float &signal, float
                float upperBound)
 {
   // Fit Background with second order polynomial, excluding Mlambda +/- 10 MeV
-  TF1 *fBackground = new TF1("fBackground", [&](double *x, double *p) {
-    if (x[0] > 1.31 && x[0] < 1.335) {TF1::RejectPoint(); return
-        (double)0; } return p[0] + p[1]*x[0] + p[2]*x[0]*x[0]; }, 1.29, 1.35, 3);
-  TFitResultPtr backgroundR = histo->Fit("fBackground", "SRQ0", "",1.295,1.349);
+   TF1 *fBackground = new TF1("fBackground", [&](double *x, double *p) {
+     if (x[0] > 1.31 && x[0] < 1.335) {TF1::RejectPoint(); return
+         (double)0; } return p[0] + p[1]*x[0] + p[2]*x[0]*x[0]; }, 1.29, 1.35, 3);
+   TFitResultPtr backgroundR = histo->Fit("fBackground", "SRQ0", "",1.295,1.349);
 
-  // parse then to proper TF1
-  TF1 *fBackground2 = new TF1("fBackground2","pol2", 0, 1.4);
-  fBackground2->SetParameter(0, fBackground->GetParameter(0));
-  fBackground2->SetParameter(1, fBackground->GetParameter(1));
-  fBackground2->SetParameter(2, fBackground->GetParameter(2));
+   // parse then to proper TF1
+   TF1 *fBackground2 = new TF1("fBackground2","pol2", 0, 1.4);
+   fBackground2->SetParameter(0, fBackground->GetParameter(0));
+   fBackground2->SetParameter(1, fBackground->GetParameter(1));
+   fBackground2->SetParameter(2, fBackground->GetParameter(2));
 
-  // remove background from signal
-  TH1F *signalOnly = getSignalHisto(fBackground2, histo, 1.3, 1.34,
-                                    Form("%s_signal_only", histo->GetName()));
+   // remove background from signal
+   TH1F *signalOnly = getSignalHisto(fBackground2, histo, 1.3, 1.34,
+                                     Form("%s_signal_only", histo->GetName()));
 
-  // fit signal only
-  TF1 *fSignalSingleGauss = new TF1("fSignalSingleGauss", "gaus(0)",1.31,1.34);
-  //  signalOnly->DrawCopy();
-  signalOnly->Fit("fSignalSingleGauss", "Q");
-  TF1 *fSignalGauss = new TF1("fSignalGauss", "gaus(0) + gaus(3)", 1.3,
-                              1.4);
-  fSignalGauss->SetParameter(0, 0.75 * histo->GetMaximum());
-  fSignalGauss->SetParameter(1, fSignalSingleGauss->GetParameter(1));
-  fSignalGauss->SetParameter(2, 2.f*fSignalSingleGauss->GetParameter(2));
-  fSignalGauss->SetParLimits(2, 0.5*fSignalSingleGauss->GetParameter(2),1e2*2.f*fSignalSingleGauss->GetParameter(2));
-  fSignalGauss->SetParameter(3, 0.2 * histo->GetMaximum());
-  fSignalGauss->SetParameter(4, fSignalSingleGauss->GetParameter(1));
-  fSignalGauss->SetParLimits(4,
-                             fSignalSingleGauss->GetParameter(1)-fSignalSingleGauss->GetParameter(2),
-                             fSignalSingleGauss->GetParameter(1)+fSignalSingleGauss->GetParameter(2));
-  fSignalGauss->SetParameter(5, 0.5*fSignalSingleGauss->GetParameter(2));
-  fSignalGauss->SetParLimits(5, 0.5*fSignalSingleGauss->GetParameter(2),1e2*2.f*fSignalSingleGauss->GetParameter(2));
-  TFitResultPtr r = signalOnly->Fit("fSignalGauss", "SRQ0", "", 1.29,
-                                    1.38);
+   // fit signal only
+   TF1 *fSignalSingleGauss = new TF1("fSignalSingleGauss", "gaus(0)",1.31,1.34);
+   //  signalOnly->DrawCopy();
+   signalOnly->Fit("fSignalSingleGauss");
+   TF1 *fSignalGauss = new TF1("fSignalGauss", "gaus(0) + gaus(3)", 1.3,
+                               1.4);
+   fSignalGauss->SetParameter(0, 0.75 * histo->GetMaximum());
+   fSignalGauss->SetParameter(1, fSignalSingleGauss->GetParameter(1));
+   fSignalGauss->SetParameter(2, 2.f*fSignalSingleGauss->GetParameter(2));
+   fSignalGauss->SetParLimits(2, 0.5*fSignalSingleGauss->GetParameter(2),1e2*2.f*fSignalSingleGauss->GetParameter(2));
+   fSignalGauss->SetParameter(3, 0.2 * histo->GetMaximum());
+   fSignalGauss->SetParameter(4, fSignalSingleGauss->GetParameter(1));
+   fSignalGauss->SetParLimits(4,
+                              fSignalSingleGauss->GetParameter(1)-fSignalSingleGauss->GetParameter(2),
+                              fSignalSingleGauss->GetParameter(1)+fSignalSingleGauss->GetParameter(2));
+   fSignalGauss->SetParameter(5, 0.5*fSignalSingleGauss->GetParameter(2));
+   fSignalGauss->SetParLimits(5, 0.5*fSignalSingleGauss->GetParameter(2),1e2*2.f*fSignalSingleGauss->GetParameter(2));
+   TFitResultPtr r = signalOnly->Fit("fSignalGauss", "SRQ0", "", 1.29,1.38);
 
-  // Extract signal as integral
-  signal = fSignalGauss->Integral(lowerBound, upperBound)
-                /double(histo->GetBinWidth(1));
-  signalErr = fSignalGauss->IntegralError(lowerBound, upperBound,
-                                          r->GetParams(), r->GetCovarianceMatrix().GetMatrixArray())
-                /double(histo->GetBinWidth(1));
+   // Extract signal as integral
+   signal = fSignalGauss->Integral(lowerBound, upperBound)
+                 /double(histo->GetBinWidth(1));
+   signalErr = fSignalGauss->IntegralError(lowerBound, upperBound,
+                                           r->GetParams(), r->GetCovarianceMatrix().GetMatrixArray())
+                 /double(histo->GetBinWidth(1));
 
-  TF1 *fLambda = new TF1("fLambda", "fBackground2 + fSignalGauss", 1.25,
-                         1.4);
-  fLambda->SetNpx(1000);
-  fLambda->SetParameter(3, 0.75 * histo->GetMaximum());
-  fLambda->SetParameter(4, fSignalGauss->GetParameter((1)));
-  fLambda->SetParameter(5, fSignalGauss->GetParameter((2)));
-  fLambda->SetParameter(6, 0.2 * histo->GetMaximum());
-  fLambda->SetParameter(7, fSignalGauss->GetParameter((4)));
-  fLambda->SetParameter(8, fSignalGauss->GetParameter((5)));
-  fLambda->SetLineColor(fColors[1]);
-  histo->Fit("fLambda", "SRQ", "", 1.28, 1.4);
+   TF1 *fLambda = new TF1("fLambda", "fBackground2 + fSignalGauss", 1.25,
+                          1.4);
+   fLambda->SetNpx(1000);
+   fLambda->SetParameter(0, fBackground->GetParameter(0));
+   fLambda->SetParameter(1, fBackground->GetParameter(1));
+   fLambda->SetParameter(2, fBackground->GetParameter(2));
+   fLambda->SetParameter(3, 0.75 * histo->GetMaximum());
+   fLambda->SetParameter(4, fSignalGauss->GetParameter((1)));
+   fLambda->SetParameter(5, fSignalGauss->GetParameter((2)));
+   fLambda->SetParameter(6, 0.2 * histo->GetMaximum());
+   fLambda->SetParameter(7, fSignalGauss->GetParameter((4)));
+   fLambda->SetParameter(8, fSignalGauss->GetParameter((5)));
+   fLambda->SetLineColor(fColors[2]);
+   histo->Fit("fLambda", "SRQ", "", 1.28, 1.4);
 
-  TF1 *fLambda_background = new TF1("fLambda_background", "pol2(0)",
-                                    1.28, 1.45);
-  fLambda_background->SetParameter(0, fLambda->GetParameter(0));
-  fLambda_background->SetParameter(1, fLambda->GetParameter(1));
-  fLambda_background->SetParameter(2, fLambda->GetParameter(2));
-  fLambda_background->SetLineStyle(3);
-  fLambda_background->SetLineColor(fColors[1]);
+   TF1 *fLambda_background = new TF1("fLambda_background", "pol2(0)",
+                                     1.28, 1.45);
+   fLambda_background->SetParameter(0, fBackground->GetParameter(0));
+   fLambda_background->SetParameter(1, fBackground->GetParameter(1));
+   fLambda_background->SetParameter(2, fBackground->GetParameter(2));
+   fLambda_background->SetLineStyle(3);
+   fLambda_background->SetLineColor(fColors[2]);
 
-  background = fLambda_background->Integral(lowerBound, upperBound)
-                /double(histo->GetBinWidth(1));
-  backgroundErr = fLambda_background->IntegralError(lowerBound,
-                                                    upperBound, backgroundR->GetParams(),
-                                                    backgroundR->GetCovarianceMatrix().GetMatrixArray())
-                /double(histo->GetBinWidth(1));
+   background = fLambda_background->Integral(lowerBound, upperBound)
+                 /double(histo->GetBinWidth(1));
+   backgroundErr = fLambda_background->IntegralError(lowerBound,
+                                                     upperBound, backgroundR->GetParams(),
+                                                     backgroundR->GetCovarianceMatrix().GetMatrixArray())
+                 /double(histo->GetBinWidth(1));
 
-  histo->GetListOfFunctions()->Add(fLambda_background);
+   histo->GetListOfFunctions()->Add(fLambda_background);
 
-  delete signalOnly;
-  delete fSignalGauss;
-  delete fSignalSingleGauss;
+   delete signalOnly;
+   delete fSignalGauss;
+   delete fSignalSingleGauss;
 }
 
 void PurityByPeriod(const char *fileName, const char *prefix) {
@@ -370,19 +372,19 @@ void PurityByPeriod(const char *fileName, const char *prefix) {
 
   int histCounterV0=0;
   TCanvas *cLambda = new TCanvas("cLambda","cLambda",0,0,1000,550);
-  cLambda->Divide(2,2);
+  cLambda->Divide(6,6);
 
   int histCounterAV0=0;
   TCanvas *cALambda = new TCanvas("cALambda","cALambda",0,0,1000,550);
-  cALambda->Divide(2,2);
+  cALambda->Divide(6,6);
 
   int histCounterCasc=0;
   TCanvas *cXi= new TCanvas("cXi","cXi",0,0,1000,550);
-  cXi->Divide(2,2);
+  cXi->Divide(6,6);
 
   int histCounterACasc=0;
   TCanvas *cAXi = new TCanvas("cAXi","cAXi",0,0,1000,550);
-  cAXi->Divide(2,2);
+  cAXi->Divide(6,6);
 
   for (int iPeriod=1;iPeriod<nOutput;++iPeriod) {
     TString RunNumber=Form("%.0f",V0PurityPerRun->GetXaxis()->GetBinLowEdge(iPeriod));
@@ -406,7 +408,7 @@ void PurityByPeriod(const char *fileName, const char *prefix) {
 //      V0iRun[iPeriod]->DrawCopy();
       FitLambda(V0iRun[iPeriod], signal, signalErr, background, backgroundErr, massLambda-marginLambda,massLambda+marginLambda);
       float purityV0=signal/(signal+background)*100.f;
-      std::cout << purityV0 << '\n';
+//      std::cout << purityV0 << '\n';
       _valV0Purity.push_back(purityV0);
     }
 
@@ -448,6 +450,8 @@ void PurityByPeriod(const char *fileName, const char *prefix) {
       CasciRun[iPeriod]->DrawCopy();
       FitXi(CasciRun[iPeriod], signal, signalErr, background, backgroundErr, lowerBound,upperBound);
       float purityCasc=signal/(signal+background)*100.f;
+      std::cout << signal << '\t'  << background << std::endl;
+      std::cout << histCounterACasc << '\t' << purityCasc << std::endl;
       _valCascPurity.push_back(purityCasc);
     }
     AntiCasciRun[iPeriod]=(TH1F*)AntiCascPurityPerRun->ProjectionY(Form("ACasc%s",RunNumber.Data()),iPeriod,iPeriod);
@@ -485,32 +489,38 @@ void PurityByPeriod(const char *fileName, const char *prefix) {
   FinalPurityAV0=new TH1F("Purity Anti-Lambda","Purity Anti-Lambda",nRuns,0,nRuns);
   FinalPurityAV0->GetXaxis()->SetTitle("Run Number");
   FinalPurityAV0->GetYaxis()->SetTitle("Purity");
-//  FinalPurityAV0->GetYaxis()->SetRangeUser(0.8,1.05);
+  FinalPurityAV0->GetYaxis()->SetRangeUser(80,105);
   FinalPurityCasc=new TH1F("Purity Xi","Purity Xi",nRuns,0,nRuns);
   FinalPurityCasc->GetXaxis()->SetTitle("Run Number");
   FinalPurityCasc->GetYaxis()->SetTitle("Purity");
-  FinalPurityCasc->GetYaxis()->SetRangeUser(0.8,1.05);
+  FinalPurityCasc->GetYaxis()->SetRangeUser(80,105);
   FinalPurityACasc=new TH1F("Purity Anti-Xi","Purity Anti-Xi",nRuns,0,nRuns);
   FinalPurityACasc->GetXaxis()->SetTitle("Run Number");
   FinalPurityACasc->GetYaxis()->SetTitle("Purity");
-  FinalPurityACasc->GetYaxis()->SetRangeUser(0.8,1.05);
+  FinalPurityACasc->GetYaxis()->SetRangeUser(80,105);
   for (int i=1;i<nRuns+1;++i) {
     FinalPurityV0->SetBinContent(i,_valV0Purity.at(i-1));
-    FinalPurityV0->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
+    if (i%4==0)FinalPurityV0->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
     FinalPurityAV0->SetBinContent(i,_valAntiV0Purity.at(i-1));
-    FinalPurityAV0->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
-//    FinalPurityCasc->SetBinContent(i+1,_valCascPurity.at(i));
-//    FinalPurityACasc->SetBinContent(i+1,_valAntiCascPurity.at(i));
+    if (i%4==0)FinalPurityAV0->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
+    FinalPurityCasc->SetBinContent(i,_valCascPurity.at(i-1));
+    if (i%4==0)FinalPurityCasc->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
+    FinalPurityACasc->SetBinContent(i,_valAntiCascPurity.at(i-1));
+    if (i%4==0)FinalPurityACasc->GetXaxis()->SetBinLabel(i,Form("%i",iRuns.at(i-1)));
   }
-
+  SetStyleHisto(FinalPurityV0,1,1);
+  SetStyleHisto(FinalPurityAV0,1,1);
+  SetStyleHisto(FinalPurityCasc,1,1);
+  SetStyleHisto(FinalPurityACasc,1,1);
 
 
   cPurity->cd(1);
   FinalPurityV0->DrawCopy();
   cPurity->cd(2);
   FinalPurityAV0->DrawCopy();
-//  cPurity->cd(3);
-//  FinalPurityCasc->DrawCopy();
-//  cPurity->cd(4);
-//  FinalPurityACasc->DrawCopy();
+  cPurity->cd(3);
+  FinalPurityCasc->DrawCopy();
+  cPurity->cd(4);
+  FinalPurityACasc->DrawCopy();
+  cPurity->SaveAs("PurityPerRunnumber.pdf");
 }
