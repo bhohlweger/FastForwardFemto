@@ -458,10 +458,10 @@ void MakeItLookLikeOli(const char *fileName,const char *prefix,bool isMC,bool dc
                 TH1F *CPALamPriPt=(TH1F*)CPALamPri->ProjectionY(PriName.Data(),iBins+1,iBins+2);
                 SPdir->Add(CPALamPriPt);
                 TString SecName=Form("fLambdaCPASecondaryPtBin%i",iBins);
-                TH1F *CPALamSecPt=(TH1F*)CPALamMat->ProjectionY(SecName.Data(),iBins+1,iBins+2);
+                TH1F *CPALamSecPt=(TH1F*)CPALamSec->ProjectionY(SecName.Data(),iBins+1,iBins+2);
                 SPdir->Add(CPALamSecPt);
                 TString MatName=Form("fLambdaCPAMaterialPtBin%i",iBins);
-                TH1F *CPALamMatPt=(TH1F*)CPALamSec->ProjectionY(MatName.Data(),iBins+1,iBins+2);
+                TH1F *CPALamMatPt=(TH1F*)CPALamMat->ProjectionY(MatName.Data(),iBins+1,iBins+2);
                 SPdir->Add(CPALamMatPt);
                 TString BkgName=Form("fLambdaCPABkgPtBin%i",iBins);
                 TH1F *CPALamBkgPt=(TH1F*)CPALamCont->ProjectionY(BkgName.Data(),iBins+1,iBins+2);

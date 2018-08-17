@@ -310,6 +310,15 @@ void DrawHist(TH1F* hist1, TH1F* hist2, TH1F* hist3, TH1F* hist4, TH1F* hist5,
               Int_t MarkerSize2, Int_t MarkerColor3, Int_t MarkerSize3,
               Int_t MarkerColor4, Int_t MarkerSize4, Int_t MarkerColor5,
               Int_t MarkerSize5, Bool_t showTitle, bool singlepanel=false) {
+//  DrawHist(
+//          (TH1F*)hist_lambda_CPA_exp[PtbinCPA_repo],
+//          (TH1F*)hist_lambda_CPA_primary_normalized_ExpEvts_weight[PtbinCPA_repo],
+//          (TH1F*)
+//              hist_lambda_CPA_secondary_normalized_ExpEvts_weight[PtbinCPA_repo],
+//          (TH1F*)
+//              hist_lambda_CPA_material_normalized_ExpEvts_weight[PtbinCPA_repo],
+//          (TH1F*)hist_lambda_CPA_bkg_normalized_ExpEvts_weight[PtbinCPA_repo], "",
+//          "cos #alpha", "Counts",  2, 1, 1, 2, 1, 3, 1, 4, 1, 5, 1, kFALSE, true);
   hist1->SetStats(0);
   if (!showTitle) {
     hist1->SetTitle(0);
@@ -671,7 +680,7 @@ double getDCAxyvalue(double pt) {
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 int templateFitter(const char* file, const char* file2) {
   SetStyle();
-
+  int rebin=1;
   std::cout << "file sim: " << file << std::endl;
   std::cout << "file exp: " << file2 << std::endl;
 
@@ -768,29 +777,33 @@ int templateFitter(const char* file, const char* file2) {
   TH1F* hist_lambda_CPA_material_normalized_ExpEvts[CPA_Ptbins];
   TH1F* hist_lambda_CPA_bkg[CPA_Ptbins];
   TH1F* hist_lambda_CPA_bkg_normalized_ExpEvts[CPA_Ptbins];
-
   for (Int_t ptbin = 0; ptbin < CPA_Ptbins; ptbin++) {
     TString HistName = "fLambdaCPAPtBin";
     HistName += ptbin;
     hist_lambda_CPA[ptbin] = (TH1F*)listSP->FindObject(HistName.Data());
+    hist_lambda_CPA[ptbin]->Rebin(rebin);
 
     HistName = "fLambdaCPAPrimaryPtBin";
     HistName += ptbin;
     hist_lambda_CPA_primary[ptbin] = (TH1F*)listSP->FindObject(HistName.Data());
+    hist_lambda_CPA_primary[ptbin]->Rebin(rebin);
 
     HistName = "fLambdaCPASecondaryPtBin";
     HistName += ptbin;
     hist_lambda_CPA_secondary[ptbin] =
         (TH1F*)listSP->FindObject(HistName.Data());
+    hist_lambda_CPA_secondary[ptbin]->Rebin(rebin);
 
     HistName = "fLambdaCPAMaterialPtBin";
     HistName += ptbin;
     hist_lambda_CPA_material[ptbin] =
         (TH1F*)listSP->FindObject(HistName.Data());
+    hist_lambda_CPA_material[ptbin]->Rebin(rebin);
 
     HistName = "fLambdaCPABkgPtBin";
     HistName += ptbin;
     hist_lambda_CPA_bkg[ptbin] = (TH1F*)listSP->FindObject(HistName.Data());
+    hist_lambda_CPA_bkg[ptbin]->Rebin(rebin);
   }
 
   const Int_t Purity_Ptbins = 33;
@@ -835,7 +848,7 @@ int templateFitter(const char* file, const char* file2) {
     TString HistName = "fLambdaCPAPtBin";
     HistName += ptbin;
     hist_lambda_CPA_exp[ptbin] = (TH1F*)listSP_exp->FindObject(HistName.Data());
-
+    hist_lambda_CPA_exp[ptbin]->Rebin(rebin);
     if (!hist_lambda_CPA_exp[ptbin]) std::cout << "histo missing" << std::endl;
 
     if (!hist_lambda_CPA_primary[ptbin])
@@ -1307,11 +1320,12 @@ int templateFitter(const char* file, const char* file2) {
     // between 0 and 1
     // fit->Constrain(2,0.,1.);               // constrain fraction 2 to be
     // between 0 and 1
-    if(ptbin == 3)  fit->Constrain(0,0.,1.);
-    if(ptbin == 7)  fit->Constrain(0,0.,1.);
-    if(ptbin == 8)  fit->Constrain(0,0.,10.);
+//    if(ptbin == 7)  fit->Constrain(0,0.,1.);
+//    if(ptbin == 8)  fit->Constrain(0,0.,10.);
+    //pPb: for DPMJET! (For EPOS only the last one)
+    if(ptbin == 2)  fit->Constrain(0,0.,1.);
     if(ptbin == 13)  fit->Constrain(0,0.,1.);
-//    if(ptbin == 15)  fit->Constrain(0,0.,1.);
+    if(ptbin == 15)  fit->Constrain(0,0.,10.);
     if(ptbin == 18)  fit->Constrain(0,0.,10.);
     fit->SetRangeX(hist_proton_DCAxy_projection_all_exp[ptbin]->FindBin(-2.4),
                    hist_proton_DCAxy_projection_all_exp[ptbin]->FindBin(
@@ -1830,10 +1844,12 @@ int templateFitter(const char* file, const char* file2) {
 
       TFractionFitter* fit_CPA = new TFractionFitter(
           hist_lambda_CPA_exp[ptbin], mcDCA_array_CPA);  // initialise
-      if(ptbin == 1) fit_CPA->Constrain(0,0.,1.);
-      if(ptbin == 2) fit_CPA->Constrain(0,0.,10.);
-      if(ptbin == 3) fit_CPA->Constrain(0,0.,10.);
-
+      //pPb DPMJET:
+      if(ptbin == 0) fit_CPA->Constrain(0,0.,1.);
+      if(ptbin == 5) fit_CPA->Constrain(0,0.,10.);
+//      if(ptbin == 3) fit_CPA->Constrain(0,0.,10.);
+      fit_CPA->SetRangeX(hist_lambda_CPA_exp[ptbin]->FindBin(0.97),
+                         hist_lambda_CPA_exp[ptbin]->FindBin(1.0));
       Int_t status = fit_CPA->Fit();  // perform the fit
 
       if (status == 0) {
@@ -1978,7 +1994,7 @@ int templateFitter(const char* file, const char* file2) {
     hist_lambda_CPA_templatesum[PtbinCPA_repo]->SetLineColor(colors[1]);
     hist_lambda_CPA_templatesum[PtbinCPA_repo]->DrawCopy("histo same");
     print_ranges(V0_InvMass_threshold_low, Delta_pt_V0, PtbinCPA_repo,
-                 "#it{p}_{T}", "GeV/#it{c}", 0.992, 5E5);
+                 "#it{p}_{T}", "GeV/#it{c}", 0.906836, 364264);
     Can_proton_CPA_representation_fit->Print("ANplot/lambdaTemplateFit_single.pdf");
 
   }
