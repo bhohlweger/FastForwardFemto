@@ -240,11 +240,14 @@ void ShiftForEmptyAndRebin(TH1F* InputSE, TH1F* InputME, int rebin,
   int binNew=1;
   int effCounter=0;
   int nEntriesSE = 0;
+  int nErrorSE = 0;
   int nEntriesME = 0;
+  int nErrorME = 0;
   bool burnin = true;
   bool construct = true;
   for (int iBins = 1; iBins <= nBins; ++iBins) {
     nEntriesSE+=InputSE->GetBinContent(iBins);
+    nErrorSE+=InputSE->GetBinError(iBins)*InputSE->GetBinError(iBins);
     if (burnin && (nEntriesSE == 0)) {
       kMin+=binWidth;
       //      std::cout << iBins << '\t' << rebin << std::endl;
@@ -267,15 +270,19 @@ void ShiftForEmptyAndRebin(TH1F* InputSE, TH1F* InputME, int rebin,
     }
     effCounter++;
     nEntriesME+=InputME->GetBinContent(iBins);
+    nErrorME+=InputME->GetBinError(iBins)*InputME->GetBinError(iBins);
+
 
     if (effCounter%rebin==0) {
       output[0]->SetBinContent(binNew,nEntriesSE);
-      output[0]->SetBinError(binNew,TMath::Sqrt(nEntriesSE));
+      output[0]->SetBinError(binNew,TMath::Sqrt(nErrorSE));
       output[1]->SetBinContent(binNew,nEntriesME);
-      output[1]->SetBinError(binNew,TMath::Sqrt(nEntriesME));
+      output[1]->SetBinError(binNew,TMath::Sqrt(nErrorME));
 
       nEntriesSE=0;
+      nErrorSE=0;
       nEntriesME=0;
+      nErrorME=0;
 
       effCounter=0;
       binNew++;
@@ -309,20 +316,25 @@ void ShiftForFixedBinAndRebin(TH1F* InputSE, TH1F* InputME, int rebin,int startB
   int binNew=1;
   int effCounter=0;
   int nEntriesSE = 0;
+  int nErrorSE = 0;
   int nEntriesME = 0;
+  int nErrorME = 0;
   for (int iBins = startBin; iBins <= nBins; ++iBins) {
     nEntriesSE+=InputSE->GetBinContent(iBins);
+    nErrorSE+=InputSE->GetBinError(iBins)*InputSE->GetBinError(iBins);
     nEntriesME+=InputME->GetBinContent(iBins);
+    nErrorME+=InputME->GetBinError(iBins)*InputME->GetBinError(iBins);
     effCounter++;
-
     if (effCounter%rebin==0) {
       output[0]->SetBinContent(binNew,nEntriesSE);
-      output[0]->SetBinError(binNew,TMath::Sqrt(nEntriesSE));
+      output[0]->SetBinError(binNew,TMath::Sqrt(nErrorSE));
       output[1]->SetBinContent(binNew,nEntriesME);
-      output[1]->SetBinError(binNew,TMath::Sqrt(nEntriesME));
+      output[1]->SetBinError(binNew,TMath::Sqrt(nErrorME));
 
       nEntriesSE=0;
+      nErrorSE=0;
       nEntriesME=0;
+      nErrorME=0;
 
       effCounter=0;
       binNew++;
@@ -566,6 +578,7 @@ TH1F* ReweightMEbyMult(
   int nKSbins=SEMult->GetXaxis()->GetNbins();
   double kSMaxVal=SEMult->GetXaxis()->GetBinUpEdge(nKSbins);
   TH1F* Output = new TH1F(outputName.Data(),outputName.Data(),nKSbins,0,kSMaxVal);
+  Output->Sumw2();
   int firstBin=SEMult->FindBin(kSMin);
   int lastBin=SEMult->FindBin(kSMax);
   TH1D* MultProjSE=SEMult->ProjectionY(Form("%sMult",SEMult->GetName()),firstBin,lastBin);
