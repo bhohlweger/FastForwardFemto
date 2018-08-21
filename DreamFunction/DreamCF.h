@@ -15,6 +15,7 @@ class DreamCF {
   void SetPair(DreamPair* Pair) {fPair=Pair;};
   virtual ~DreamCF();
   void ShiftForEmpty();
+  void Rebin();
   DreamPair*  fPair;
   DreamPair*  fPairShifted;
   DreamPair*  fPairLast;

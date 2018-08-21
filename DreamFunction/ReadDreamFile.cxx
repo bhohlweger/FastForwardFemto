@@ -59,27 +59,34 @@ void ReadDreamFile::SetAnalysisFile(const char* PathAnalysisFile,
         std::cout << "SE Histogramm missing from " << FolderName.Data()
                         <<std::endl;
       }
+      fSE[iPart1][iPart2]->Sumw2();
+
       fSEMult[iPart1][iPart2]=nullptr;
       fSEMult[iPart1][iPart2]=
           (TH2F*)PartList->FindObject(Form("SEMultDist_%s",FolderName.Data()));
-      if (!fSE[iPart1][iPart2]) {
+      if (!fSEMult[iPart1][iPart2]) {
         std::cout << "SEMult Histogramm missing from " << FolderName.Data()
                         <<std::endl;
       }
+      fSEMult[iPart1][iPart2]->Sumw2();
+
       fME[iPart1][iPart2]=nullptr;
       fME[iPart1][iPart2]=
           (TH1F*)PartList->FindObject(Form("MEDist_%s",FolderName.Data()));
-      if (!fSE[iPart1][iPart2]) {
+      if (!fME[iPart1][iPart2]) {
         std::cout << "ME Histogramm missing from " << FolderName.Data()
                         <<std::endl;
       }
+      fME[iPart1][iPart2]->Sumw2();
+
       fMEMult[iPart1][iPart2]=nullptr;
       fMEMult[iPart1][iPart2]=
           (TH2F*)PartList->FindObject(Form("MEMultDist_%s",FolderName.Data()));
-      if (!fSE[iPart1][iPart2]) {
+      if (!fMEMult[iPart1][iPart2]) {
         std::cout << "ME Mult Histogramm missing from " << FolderName.Data()
                         <<std::endl;
       }
+      fMEMult[iPart1][iPart2]->Sumw2();
     }
   }
 }

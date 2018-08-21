@@ -4,7 +4,10 @@ void GetCorrelations(const char* filename, const char* prefix) {
   ReadDreamFile* DreamFile=new ReadDreamFile(6,6);
   DreamFile->SetAnalysisFile(filename,prefix);
 
-  DreamCF* pp=new DreamCF();
-//  pp->SetPairOne(DreamFile->GetPairDistributions(0,0,"0"));
-//  pp->SetPairTwo(DreamFile->GetPairDistributions(1,1,"0"));
+  DreamCF* pXi=new DreamCF();
+  pXi->SetPair(DreamFile->GetPairDistributions(0,4,""));
+  pXi->ShiftForEmpty();
+  DreamCF* ApAXi=new DreamCF();
+  ApAXi->SetPair(DreamFile->GetPairDistributions(1,5,""));
+  ApAXi->ShiftForEmpty();
 }
